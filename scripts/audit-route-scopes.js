@@ -15,7 +15,13 @@
 'use strict';
 const fs = require('fs');
 
-const src = fs.readFileSync(process.argv[2] || 'server.js', 'utf8');
+// App source now lives in server.js + routes/*.js (Phase 2 split)
+let src = fs.readFileSync(process.argv[2] || 'server.js', 'utf8');
+try {
+  for (const f of fs.readdirSync('routes')) {
+    if (f.endsWith('.js')) src += '\n' + fs.readFileSync(`routes/${f}`, 'utf8');
+  }
+} catch { /* routes/ missing (pre-split) */ }
 const lines = src.split('\n');
 
 // ── JS builtins + known globals that are safe to read ──
@@ -159,7 +165,8 @@ for (const h of handlers) {    const body = src.slice(h.start, h.end);
       if (HANDLER_PARAMS.has(id)) continue;
       if (moduleNames.has(id)) continue;
       // declared in handler (or signature)? declarations, arrow params, destructuring
-      const declRe = new RegExp(`\\b(?:let|const|var|function)\\s+${id}\\b|\\b${id}\\s*=>|\\b(?:const|let)\\s*\\{[^}]*\\b${id}\\b`);
+      // covers object destructure `const { a, b } =` AND array destructure `const [a, b] =`
+      const declRe = new RegExp(`\\b(?:let|const|var|function)\\s+${id}\\b|\\b${id}\\s*=>|\\b(?:const|let|var)\\s*\\{[^}]*\\b${id}\\b|\\b(?:const|let|var)\\s*\\[[^\\]]*\\b${id}\\b`);
       const declared = declRe.test(searchable);
       // assigned outside catch?
       let assignedOutsideCatch = false, assignedOnlyInCatch = false;

@@ -46,9 +46,15 @@ function trackingStepsFor(status, placedAt) {
   }));
 }
 
+
+// Normalize a cart quantity to a positive integer (or null when invalid)
+function normalizeQty(qty) {
+  const n = parseInt(qty, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
 module.exports = {
   fmt,
-  CLOUDINARY_PLACEHOLDER,
+  CLOUDINARY_PLACEHOLDER, normalizeQty,
   imgUrl,
   getDistinctCategories,
   sessionUser,

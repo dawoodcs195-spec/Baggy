@@ -15,7 +15,13 @@ const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
 
-const server = fs.readFileSync('server.js', 'utf8');
+// App source now lives in server.js + routes/*.js (Phase 2 split)
+let server = fs.readFileSync('server.js', 'utf8');
+try {
+  for (const f of fs.readdirSync('routes')) {
+    if (f.endsWith('.js')) server += '\n' + fs.readFileSync(`routes/${f}`, 'utf8');
+  }
+} catch { /* routes/ missing (pre-split) */ }
 
 // ── 1) Find every renderPage(req, res, 'tpl', { ... }) call ──
 const calls = [];

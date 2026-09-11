@@ -50,7 +50,14 @@ if (envFile) {
 }
 
 // ── 2. Static source checks ──────────────────────────────────────
-const server = read('server.js') || '';
+// App source now lives in server.js + routes/*.js (Phase 2 split)
+let serverSrc = read('server.js') || '';
+try {
+  for (const f of fs.readdirSync(path.join(ROOT, 'routes'))) {
+    if (f.endsWith('.js')) serverSrc += read('routes/' + f) || '';
+  }
+} catch { /* routes/ missing (pre-split) */ }
+const server = serverSrc;
 check('Session store uses MongoDB (connect-mongo)', /MongoStore\s*\(\s*\{[\s\S]{0,200}client:/.test(server));
 check('No hardcoded session fallback secret', !server.includes("SESSION_SECRET || 'baggy-jeans-shop-dev-secret'"));
 check('CSP has no unsafe-eval', !server.includes("'unsafe-eval'"));
