@@ -241,25 +241,35 @@ async function boot() {
     logger.error('  ⚠ Smoke test error (server continuing): %s', e.message);
   }
 
-  server = app.listen(env.port, () => {
-    logger.info(`\n  🛍️  BA GGY Shop → http://localhost:${env.port}\n`);
+    // Skip listening in test mode — Supertest handles this internally
+  if (process.env.NODE_ENV !== 'test') {
+    server = app.listen(env.port, () => {
+      logger.info(`\n  🛍️  BA GGY Shop → http://localhost:${env.port}\n`);
+    });
+  }
+}
+
+// Export app + boot for testing (Supertest); boot() not called on import
+module.exports = { app, boot, get server() { return server; } };
+
+// Only boot when run directly (not when imported by tests / CI)
+if (require.main === module) {
+  boot().catch(err => {
+    logger.error('  ✗ Boot failed: %s', err.message);
+    process.exit(1);
+  });
+
+  // Graceful shutdown — releases port properly on Ctrl+C
+  process.on('SIGINT', () => {
+    logger.info('\n  Shutting down gracefully...');
+    server.close(() => {
+      logger.info('  Server closed.\n');
+      process.exit(0);
+    });
+    // Force exit after 2s if graceful fails
+    setTimeout(() => process.exit(1), 2000);
   });
 }
-boot().catch(err => {
-  logger.error('  ✗ Boot failed: %s', err.message);
-  process.exit(1);
-});
-
-// Graceful shutdown — releases port properly on Ctrl+C
-process.on('SIGINT', () => {
-  logger.info('\n  Shutting down gracefully...');
-  server.close(() => {
-    logger.info('  Server closed.\n');
-    process.exit(0);
-  });
-  // Force exit after 2s if graceful fails
-  setTimeout(() => process.exit(1), 2000);
-});
 
 
 
