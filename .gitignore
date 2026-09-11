@@ -1,0 +1,35 @@
+# ── Node ────────────────────────────────────────────────
+node_modules/
+
+# ── Secrets (never commit) ──────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Logs & runtime files ────────────────────────────────
+*.log
+server.pid
+
+# ── User-generated content (added at runtime) ───────────
+public/uploads/
+
+# ── Local tooling / scratch ─────────────────────────────
+.freebuff/
+.claude/
+tmp-*.js
+problem.png
+problem1.png
+problem2.png
+.freebuff_checkout_new.html
+check-out.txt
+checks-out.txt
+live-out.txt
+audit-out.txt
+boot-time.txt
+phase2-out.txt
+remote-check.txt
+remote-err.txt
+
+# ── OS ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

@@ -1,0 +1,220 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>SETTINGS</h1>
+    <p class="page-desc" data-reveal>Configure store & shipping settings</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand"><a href="/" class="admin-brand-link">BA GGY</a></div>
+        <nav class="admin-nav">
+          <a href="/admin"><span aria-hidden="true">▦</span> Dashboard</a>
+          <a href="/admin/orders"><span aria-hidden="true">▢</span> Orders</a>
+          <a href="/admin/products"><span aria-hidden="true">◇</span> Products</a>
+          <a href="/admin/inventory"><span aria-hidden="true">▤</span> Inventory</a>
+          <a href="/admin/users"><span aria-hidden="true">👤</span> Customers</a>
+          <a href="/admin/contacts"><span aria-hidden="true">✉</span> Messages</a>
+          <a href="/admin/newsletter"><span aria-hidden="true">📧</span> Newsletter</a>
+          <a href="/admin/settings" class="active"><span aria-hidden="true">⚙</span> Settings</a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">View Store</a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">Sign Out</button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <div class="admin-content-header">
+          <div>
+            <h2>Store Settings</h2>
+            <p class="admin-sub">Manage shipping, store info, and checkout settings</p>
+          </div>
+        </div>
+
+        <div style="max-width:600px;">
+          <!-- Shipping Settings -->
+          <div style="border:1px solid var(--color-gray-200);border-radius:4px;padding:var(--space-6);margin-bottom:var(--space-8);">
+            <h3 style="margin-top:0;margin-bottom:var(--space-4);">Shipping Settings</h3>
+
+            <form id="settings-form" style="display:flex;flex-direction:column;gap:var(--space-5);">
+              <div class="form-group">
+                <label for="shipping-threshold">Free Shipping Threshold (₨) *</label>
+                <input type="number" id="shipping-threshold" name="shippingThreshold" value="<%= settings?.shippingThreshold || 3499 %>" min="0" step="100" required />
+                <small style="color:var(--color-gray-500);margin-top:4px;display:block;">Orders above this amount get free shipping</small>
+              </div>
+
+              <div class="form-group">
+                <label for="shipping-cost">Standard Shipping Cost (₨) *</label>
+                <input type="number" id="shipping-cost" name="shippingCost" value="<%= settings?.shippingCost || 299 %>" min="0" step="10" required />
+                <small style="color:var(--color-gray-500);margin-top:4px;display:block;">Applied when order is below threshold</small>
+              </div>
+
+              <div class="form-group">
+                <label for="low-stock-threshold">Low Stock Alert Threshold *</label>
+                <input type="number" id="low-stock-threshold" name="lowStockThreshold" value="<%= settings?.lowStockThreshold || 10 %>" min="1" step="1" required />
+                <small style="color:var(--color-gray-500);margin-top:4px;display:block;">Products with stock below this show a low stock badge</small>
+              </div>
+
+              <div class="form-group">
+                <label for="order-id-prefix">Order ID Prefix</label>
+                <input type="text" id="order-id-prefix" name="orderIdPrefix" value="<%= settings?.orderIdPrefix || 'BG' %>" maxlength="10" />
+                <small style="color:var(--color-gray-500);margin-top:4px;display:block;">Prefix for new order IDs (e.g. BG-12345)</small>
+              </div>
+
+              <div style="border-top:1px solid var(--color-gray-200);padding-top:var(--space-4);display:flex;gap:var(--space-3);">
+                <button type="submit" class="btn btn-primary" id="settings-save-btn">Save Changes</button>
+                <button type="reset" class="btn btn-ghost">Reset</button>
+              </div>
+
+              <div id="settings-message" style="display:none;padding:var(--space-3);border-radius:4px;font-size:0.875rem;"></div>
+            </form>
+          </div>
+
+          <!-- Store Info -->
+          <div style="border:1px solid var(--color-gray-200);border-radius:4px;padding:var(--space-6);margin-bottom:var(--space-8);">
+            <h3 style="margin-top:0;margin-bottom:var(--space-4);">Store Information</h3>
+
+            <form id="store-info-form" style="display:flex;flex-direction:column;gap:var(--space-5);">
+              <div class="form-group">
+                <label for="store-name">Store Name</label>
+                <input type="text" id="store-name" name="storeName" value="<%= settings?.storeName || 'BA GGY' %>" maxlength="100" />
+              </div>
+
+              <div class="form-group">
+                <label for="store-email">Store Email</label>
+                <input type="email" id="store-email" name="storeEmail" value="<%= settings?.storeEmail || 'support@baggy.pk' %>" />
+              </div>
+
+              <div class="form-group">
+                <label for="store-phone">Store Phone</label>
+                <input type="tel" id="store-phone" name="storePhone" value="<%= settings?.storePhone || '' %>" />
+              </div>
+
+              <div class="form-group">
+                <label for="store-address">Store Address</label>
+                <textarea id="store-address" name="storeAddress" rows="3"><%= settings?.storeAddress || '' %></textarea>
+              </div>
+
+              <div style="border-top:1px solid var(--color-gray-200);padding-top:var(--space-4);display:flex;gap:var(--space-3);">
+                <button type="submit" class="btn btn-primary" id="store-info-save-btn">Save Changes</button>
+                <button type="reset" class="btn btn-ghost">Reset</button>
+              </div>
+
+              <div id="store-info-message" style="display:none;padding:var(--space-3);border-radius:4px;font-size:0.875rem;"></div>
+            </form>
+          </div>
+
+          <!-- Payment Methods -->
+          <div style="border:1px solid var(--color-gray-200);border-radius:4px;padding:var(--space-6);">
+            <h3 style="margin-top:0;margin-bottom:var(--space-4);">Accepted Payment Methods</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+              <div style="display:flex;align-items:center;gap:var(--space-2);">
+                <input type="checkbox" id="pay-cod" checked disabled />
+                <label for="pay-cod">Cash on Delivery (COD)</label>
+              </div>
+              <div style="display:flex;align-items:center;gap:var(--space-2);">
+                <input type="checkbox" id="pay-jazz" checked disabled />
+                <label for="pay-jazz">JazzCash / EasyPaisa</label>
+              </div>
+              <div style="display:flex;align-items:center;gap:var(--space-2);">
+                <input type="checkbox" id="pay-card" checked disabled />
+                <label for="pay-card">Credit / Debit Card</label>
+              </div>
+              <div style="display:flex;align-items:center;gap:var(--space-2);">
+                <input type="checkbox" id="pay-bank" checked disabled />
+                <label for="pay-bank">Bank Transfer</label>
+              </div>
+            </div>
+            <small style="color:var(--color-gray-500);margin-top:var(--space-4);display:block;">Payment methods are managed in code configuration</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function showMessage(elementId, message, type = 'success') {
+    const msgEl = document.getElementById(elementId);
+    msgEl.textContent = message;
+    msgEl.style.display = 'block';
+    msgEl.style.background = type === 'error' ? '#fee2e2' : '#dcfce7';
+    msgEl.style.color = type === 'error' ? '#991b1b' : '#166534';
+    msgEl.style.borderLeft = `4px solid ${type === 'error' ? '#dc2626' : '#16a34a'}`;
+    setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+  }
+
+  document.getElementById('settings-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = document.getElementById('settings-save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shippingThreshold: Number(fd.get('shippingThreshold')),
+          shippingCost: Number(fd.get('shippingCost')),
+          lowStockThreshold: Number(fd.get('lowStockThreshold')),
+          orderIdPrefix: fd.get('orderIdPrefix')
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showMessage('settings-message', 'Settings saved successfully!', 'success');
+      } else {
+        showMessage('settings-message', data.message || 'Failed to save', 'error');
+      }
+    } catch (err) {
+      showMessage('settings-message', 'Network error: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Changes';
+    }
+  });
+
+  document.getElementById('store-info-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = document.getElementById('store-info-save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const res = await fetch('/api/admin/store-info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeName: fd.get('storeName'),
+          storeEmail: fd.get('storeEmail'),
+          storePhone: fd.get('storePhone'),
+          storeAddress: fd.get('storeAddress')
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showMessage('store-info-message', 'Store info updated successfully!', 'success');
+      } else {
+        showMessage('store-info-message', data.message || 'Failed to save', 'error');
+      }
+    } catch (err) {
+      showMessage('store-info-message', 'Network error: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Changes';
+    }
+  });
+</script>
+
+
+
+

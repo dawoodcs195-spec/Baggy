@@ -1,0 +1,101 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>SEARCH</h1>
+    <p class="page-desc" data-reveal>Find exactly what you're looking for</p>
+  </div>
+</header>
+
+<section class="section search-page">
+  <div class="container">
+    <div class="search-header" data-reveal>
+      <h2 style="font-family:var(--font-display);font-size:clamp(1.5rem,3vw,2.5rem);font-weight:600;margin-bottom:var(--space-4);">
+        <% if (query) { %>Results for "<span style="color:var(--color-accent);"><%= query %></span>"<% } else { %>All Products<% } %>
+      </h2>
+      <form class="search-bar-large" action="/search" method="GET">
+        <input type="text" name="q" placeholder="Search for jeans, tees..." value="<%= query || '' %>" autocomplete="off" />
+        <button type="submit" class="btn btn-primary">Search</button>
+        <% if (query) { %>
+          <a href="/search" class="btn btn-ghost" style="flex-shrink:0;">Clear</a>
+        <% } %>
+      </form>
+    </div>
+
+    <% if (query) { %>
+      <div class="search-tags" data-reveal style="transition-delay:0.05s">
+        <span style="color:var(--color-gray-500);font-size:0.8125rem;align-self:center;">Filter by:</span>
+        <button class="search-tag <%= !categoryFilter ? 'active' : '' %>" data-filter="all">All</button>
+        <button class="search-tag <%= categoryFilter === 'jeans' ? 'active' : '' %>" data-filter="jeans">Jeans</button>
+        <button class="search-tag <%= categoryFilter === 'shirts' ? 'active' : '' %>" data-filter="shirts">Tees</button>
+<button class="search-tag <%= categoryFilter === 'uppers' ? 'active' : '' %>" data-filter="uppers">Uppers</button>
+<button class="search-tag <%= categoryFilter === 'accessories' ? 'active' : '' %>" data-filter="accessories">Accessories</button>
+      </div>
+    <% } %>
+
+    <% if (products && products.length > 0) { %>
+      <div class="search-meta">
+        <span class="results-count"><%= products.length %> result<%= products.length === 1 ? '' : 's' %> for <%= query ? '"' + query + '"' : 'all products' %></span>
+        <% if (query) { %>
+          <span style="color:var(--color-gray-400);font-size:0.8125rem;">
+            <% const jeansCount = products.filter(p => p.category === 'jeans').length; %>
+            <% const shirtsCount = products.filter(p => p.category === 'shirts').length; %>
+            <span class="search-filter-count"><span style="color:var(--color-accent);cursor:pointer;" data-filter="jeans"><%= jeansCount %> jeans</span> · <span style="color:var(--color-accent);cursor:pointer;" data-filter="shirts"><%= shirtsCount %> tees</span></span>
+          </span>
+        <% } %>
+      </div>
+
+      <div class="product-grid">
+        <% products.forEach((p, i) => { %>
+          <div class="product-card" data-reveal style="transition-delay: <%= i * 50 %>ms" tabindex="0" role="link" aria-label="<%= p.name %>">
+            <div class="product-image-wrapper">
+              <img src="<%= imgUrl(p.images && p.images[0]) %>" alt="<%= p.name %>" class="product-image" loading="lazy" />
+              <img src="<%= imgUrl(p.images && p.images[1]) %>" alt="<%= p.name %> alternate view" class="product-image hover" loading="lazy" />
+              <% if (p.newArrival) { %><span class="product-badge new">New</span><% } %>
+              <% if (p.originalPrice > p.price) { %><span class="product-badge sale">Sale</span><% } %>
+              <div class="product-actions">
+                <button class="action-btn wishlist-toggle" data-id="<%= p.id %>" aria-label="Add to wishlist">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="product-overlay">
+                <button class="quick-add" data-id="<%= p.id %>">Quick Add</button>
+              </div>
+            </div>
+            <div class="product-info">
+              <h3><%= p.name %></h3>
+              <p class="product-category"><%= p.category === 'jeans' ? 'Baggy Jeans' : 'Oversized Tee' %></p>
+              <div class="product-rating">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span class="rating-count">(<%= p.reviewCount %>)</span>
+              </div>
+              <div class="product-price">
+                <span class="price-current">₨<%= p.price.toLocaleString() %></span>
+                <% if (p.originalPrice) { %>
+                  <span class="price-original">₨<%= p.originalPrice.toLocaleString() %></span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else if (query) { %>
+      <div class="search-empty" data-reveal>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <h3>No results for "<%= query %>"</h3>
+        <p>Try different keywords, check the spelling, or browse the collection.</p>
+        <a href="/shop" class="btn btn-primary">Browse All Products</a>
+      </div>
+    <% } else { %>
+      <div class="search-empty" data-reveal>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <h3>Search the collection</h3>
+        <p>Find baggy jeans, oversized tees, and more.</p>
+        <a href="/shop" class="btn btn-primary">Browse All Products</a>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+
+

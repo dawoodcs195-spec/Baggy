@@ -1,0 +1,95 @@
+<% const cat = (typeof category !== 'undefined' && category) ? category : ''; const displayProducts = (typeof filtered !== 'undefined' && Array.isArray(filtered)) ? filtered : products; %>
+<header class="page-header" data-reveal>
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text><%= cat ? 'COLLECTION' : 'ALL PRODUCTS' %></h1>
+    <p class="page-desc" data-reveal><%= cat ? 'WIDE-LEG. WASHED. WEIGHTY.' : 'EVERYTHING YOU NEED.' %></p>
+  </div>
+</header>
+
+<section class="section shop-section">
+  <div class="container">
+    <div class="shop-layout">
+      <aside class="shop-sidebar" data-reveal>
+        <div class="filter-group">
+          <h4>Category</h4>
+          <ul class="filter-list">
+            <li><a href="/shop" class="<%= !cat ? 'active' : '' %>"><span>All</span> <span class="count"><%= products.length %></span></a></li>
+            <% (categories || []).forEach(c => { %>
+              <li><a href="/shop/<%= c %>" class="<%= cat === c ? 'active' : '' %>"><span><%= c.charAt(0).toUpperCase() + c.slice(1) %></span> <span class="count"><%= products.filter(p => p.category === c).length %></span></a></li>
+            <% }) %>
+          </ul>
+        </div>
+        <div class="filter-group">
+          <h4>Price Range</h4>
+          <div class="price-slider">
+            <input type="range" id="price-min" min="0" max="10000" value="0" aria-label="Minimum price" />
+            <input type="range" id="price-max" min="0" max="10000" value="10000" aria-label="Maximum price" />
+            <div class="price-labels">
+              <span>₨0</span>
+              <span>₨10,000</span>
+            </div>
+            <button class="price-reset-btn" style="margin-top:8px; font-size:0.75rem; color:var(--color-gray-500); text-transform:uppercase; letter-spacing:0.08em; padding:4px 0; border:none; background:none; cursor:pointer; transition:color var(--dur-fast) ease;">Reset</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="shop-main">
+        <div class="shop-toolbar">
+          <select id="sort-select" class="sort-select">
+            <option value="featured">Featured</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="newest">Newest</option>
+            <option value="rating">Top Rated</option>
+          </select>
+          <span class="results-count"><%= displayProducts.length %> products</span>
+        </div>
+
+        <div class="product-grid shop-grid">
+          <% displayProducts.forEach((p, i) => { %>
+            <div class="product-card" data-reveal style="transition-delay: <%= i * 30 %>ms" tabindex="0" role="link" aria-label="<%= p.name %>">
+              <div class="product-image-wrapper">
+                <img src="<%= imgUrl(p.images && p.images[0]) %>" alt="<%= p.name %>" class="product-image" loading="lazy" />
+                <img src="<%= imgUrl(p.images && p.images[1]) %>" alt="<%= p.name %> alternate view" class="product-image hover" loading="lazy" />
+                <% if (p.newArrival) { %><span class="product-badge new">New</span><% } %>
+                <% if (p.originalPrice > p.price) { %><span class="product-badge sale">Sale</span><% } %>
+                <div class="product-actions">
+                  <button class="action-btn wishlist-toggle" data-id="<%= p.id %>" aria-label="Add to wishlist">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="product-overlay">
+                  <button class="quick-add" data-id="<%= p.id %>">Quick Add</button>
+                </div>
+              </div>
+              <div class="product-info">
+                <h3><%= p.name %></h3>
+                <p class="product-category"><%= p.category === 'jeans' ? 'Baggy Jeans' : 'Oversized Tee' %></p>
+                <div class="product-rating">
+                  <span class="stars" aria-hidden="true">★★★★★</span>
+                  <span class="rating-count">(<%= p.reviewCount %>)</span>
+                </div>
+                <div class="product-price">
+                  <span class="price-current">₨<%= p.price.toLocaleString() %></span>
+                  <% if (p.originalPrice) { %>
+                    <span class="price-original">₨<%= p.originalPrice.toLocaleString() %></span>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <% if (!displayProducts.length) { %>
+          <div class="empty-state" data-reveal>
+            <p>No products found.</p>
+          </div>
+        <% } %>
+      </main>
+    </div>
+  </div>
+</section>
+
+

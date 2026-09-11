@@ -1,0 +1,54 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>WISHLIST</h1>
+    <p class="page-desc" data-reveal>Pieces you've saved for later</p>
+  </div>
+</header>
+
+<section class="section wishlist-section">
+  <div class="container">
+    <% if (wishlist && wishlist.length > 0) { %>
+      <div class="wishlist-grid" id="wishlist-grid">
+        <% wishlist.forEach(item => { %>
+          <div class="wishlist-item" data-wishlist-item data-product-id="<%= item.productId %>">
+            <div class="wishlist-item-img-wrap">
+              <img class="wishlist-item-img" src="<%= imgUrl(item.image) %>" alt="<%= item.name %>" />
+              <div class="wishlist-item-actions">
+                <button class="action-btn wishlist-item-remove" data-product-id="<%= item.productId %>" aria-label="Remove from wishlist">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                </button>
+                <button class="action-btn wishlist-item-add-cart-btn" data-product-id="<%= item.productId %>" aria-label="Add <%= item.name %> to cart">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="wishlist-item-info">
+              <h3><%= item.name %></h3>
+              <p class="wishlist-item-category"><%= item.productId.startsWith('J') ? 'Baggy Jeans' : 'Oversized Tee' %></p>
+              <p class="wishlist-item-price">₨<%= item.price.toLocaleString() %></p>
+              <button class="wishlist-item-add-cart wishlist-item-add-cart-btn" data-product-id="<%= item.productId %>">Add to Cart</button>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+      <div class="wishlist-actions-bar">
+        <button class="btn btn-ghost" id="clear-wishlist">Clear Wishlist</button>
+        <a href="/shop" class="btn btn-secondary">Continue Shopping</a>
+      </div>
+    <% } else { %>
+      <div class="wishlist-empty" id="wishlist-empty" data-reveal>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <h2>Your wishlist is empty</h2>
+        <p>Tap the heart on any product to save it here.</p>
+        <a href="/shop" class="btn btn-primary">Discover Pieces</a>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+
+

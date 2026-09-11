@@ -1,0 +1,464 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>NEWSLETTER</h1>
+    <p class="page-desc" data-reveal>Manage subscribers & send campaigns</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand">
+          <a href="/" class="admin-brand-link">BA GGY</a>
+        </div>
+        <nav class="admin-nav">
+          <a href="/admin">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+          <a href="/admin/orders">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Orders
+            <% if (typeof totalOrders !== 'undefined' && totalOrders > 0) { %><span class="admin-nav-badge"><%= totalOrders %></span><% } %>
+          </a>
+          <a href="/admin/products">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Products
+            <% if (typeof totalProducts !== 'undefined' && totalProducts > 0) { %><span class="admin-nav-badge"><%= totalProducts %></span><% } %>
+          </a>
+          <a href="/admin/contacts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Messages
+          </a>
+          <a href="/admin/newsletter" class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Newsletter
+          </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View Store
+          </a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <div class="admin-content-header">
+          <div>
+            <h2>Newsletter Subscribers</h2>
+            <p class="admin-sub" data-reveal>Manage your email subscribers</p>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="admin-stat-grid">
+          <div class="admin-stat-card">
+            <div class="admin-stat-icon subscribers">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">Total Subscribers</div>
+              <div class="admin-stat-value"><%= totalSubscribers %></div>
+            </div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-icon today">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">New Today</div>
+              <div class="admin-stat-value"><%= todaySubscribers %></div>
+            </div>
+          </div>
+          <div class="admin-stat-card">
+            <div class="admin-stat-icon this-week">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">This Week</div>
+              <div class="admin-stat-value"><%= weekSubscribers %></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compose Campaign -->
+        <div class="newsletter-compose">
+          <div class="newsletter-compose-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <div>
+              <h3>Compose Campaign</h3>
+              <p style="font-size:0.8125rem;color:var(--color-gray-400);margin:0;">Send an email to all subscribers</p>
+            </div>
+          </div>
+          <form id="newsletter-form">
+            <div class="form-group">
+              <label for="nl-subject">Subject Line *</label>
+              <input type="text" id="nl-subject" name="subject" required placeholder="e.g., New Collection Just Dropped!" style="font-size:1rem;font-weight:500;" />
+            </div>
+            <div class="form-group">
+              <label for="nl-preview-text">Preview Text</label>
+              <input type="text" id="nl-preview-text" name="previewText" placeholder="Subscribers see this in their inbox preview..." />
+            </div>
+            <div class="form-group">
+              <label for="nl-body">Email Body (HTML) *</label>
+              <textarea id="nl-body" name="body" rows="8" required placeholder="<h1>Hello!</h1><p>Check out our latest collection...</p>"></textarea>
+            </div>
+            <div class="newsletter-compose-actions">
+              <button type="button" class="btn btn-secondary" id="nl-template-basic">Use Basic Template</button>
+              <button type="button" class="btn btn-ghost" id="nl-template-promotion">Use Promotion Template</button>
+              <button type="submit" class="btn btn-primary" id="nl-send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send Campaign
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Subscribers Table -->
+        <div class="admin-bar" style="margin-top:var(--space-8);">
+          <div class="admin-bar-left">
+            <h2>Subscribers</h2>
+            <p class="admin-sub" style="margin-bottom:0;"><%= subscribers.length %> subscriber(s)</p>
+          </div>
+          <div class="admin-bar-right">
+            <div class="live-search-wrap">
+              <input type="text" id="subscriber-search" placeholder="Search by email..." class="search-input" autocomplete="off" />
+            </div>
+            <button class="btn btn-ghost" id="export-csv-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        <% if (subscribers && subscribers.length > 0) { %>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Joined</th>
+                  <th>Last Active</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% subscribers.forEach(sub => { %>
+                  <tr>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:var(--space-3);">
+                        <div class="subscriber-avatar">
+                          <span style="font-weight:600;color:var(--color-white);"><%= sub.email ? sub.email.charAt(0).toUpperCase() : '?' %></span>
+                        </div>
+                        <span style="font-family:var(--font-mono);font-size:0.9375rem;"><%= sub.email %></span>
+                      </div>
+                    </td>
+                    <td style="color:var(--color-gray-500);font-size:0.875rem;">
+                      <%= sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' %>
+                    </td>
+                    <td style="color:var(--color-gray-500);font-size:0.875rem;">
+                      <%= sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' %>
+                    </td>
+                    <td>
+                      <span class="status-badge status-delivered">Active</span>
+                    </td>
+                    <td>
+                      <button class="admin-btn text-error subscriber-remove" data-email="<%= sub.email %>">Remove</button>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="admin-pagination">
+            <div class="pagination-info">
+              Showing page <%= page %> of <%= totalPages || 1 %>
+            </div>
+            <div class="pagination-controls">
+              <button class="pagination-btn" data-page="prev" <%= page <= 1 ? 'disabled' : '' %>>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <% for (let p = 1; p <= (totalPages || 1); p++) { %>
+                <button class="pagination-btn <%= p === page ? 'active' : '' %>" data-page="<%= p %>"><%= p %></button>
+              <% } %>
+              <button class="pagination-btn" data-page="next" <%= page >= (totalPages || 1) ? 'disabled' : '' %>>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="admin-empty">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:48px;height:48px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <h3>No subscribers yet</h3>
+            <p>Subscribers will appear here once customers sign up for the newsletter.</p>
+            <p style="font-size:0.8125rem;color:var(--color-gray-400);">Enable the newsletter popup or add a signup form to start collecting emails.</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sent confirmation modal -->
+<div class="admin-modal" id="sent-modal" role="dialog" aria-modal="true" aria-labelledby="sent-modal-title">
+  <div class="admin-modal-card">
+    <button class="admin-modal-close" id="sent-modal-close" aria-label="Close">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div style="text-align:center;padding:var(--space-6) 0;">
+      <div class="sent-success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3 id="sent-modal-title">Campaign Sent!</h3>
+      <p class="admin-modal-sub" id="sent-modal-sub">Your email has been sent to all subscribers.</p>
+      <div class="sent-stats">
+        <div class="sent-stat">
+          <span class="sent-stat-value"><%= subscribers.length %></span>
+          <span class="sent-stat-label">Recipients</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Newsletter form
+  const nlForm = document.getElementById('newsletter-form');
+  const nlSendBtn = document.getElementById('nl-send-btn');
+
+  // Basic template
+  document.getElementById('nl-template-basic')?.addEventListener('click', () => {
+    document.getElementById('nl-subject').value = 'Welcome to BA GGY!';
+    document.getElementById('nl-preview-text').value = 'Get 10% off your first order';
+    document.getElementById('nl-body').value = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 30px 0; }
+    .logo { font-size: 2rem; font-weight: bold; color: #000; }
+    .content { padding: 20px 0; }
+    .footer { text-align: center; padding: 20px; font-size: 0.875rem; color: #666; border-top: 1px solid #eee; margin-top: 30px; }
+    .btn { display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">BA GGY</div>
+    </div>
+    <div class="content">
+      <h1>Welcome to BA GGY!</h1>
+      <p>Thanks for subscribing to our newsletter. Be the first to know about new arrivals, exclusive discounts, and behind-the-scenes content.</p>
+      <p>Use code <strong>WELCOME10</strong> for 10% off your first order.</p>
+      <p style="text-align: center;">
+        <a href="/shop" class="btn">Shop Now</a>
+      </p>
+    </div>
+    <div class="footer">
+      <p>You're receiving this because you subscribed to our newsletter.</p>
+      <p><a href="#">Unsubscribe</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `.trim();
+  });
+
+  // Promotion template
+  document.getElementById('nl-template-promotion')?.addEventListener('click', () => {
+    document.getElementById('nl-subject').value = '🔥 Limited Time Offer!';
+    document.getElementById('nl-preview-text').value = 'Up to 50% off selected items';
+    document.getElementById('nl-body').value = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 30px 0; background: linear-gradient(135deg, #000 0%, #333 100%); color: #fff; border-radius: 8px 8px 0 0; }
+    .logo { font-size: 2rem; font-weight: bold; }
+    .content { padding: 30px 20px; text-align: center; }
+    .offer-badge { display: inline-block; padding: 8px 20px; background: #b8002f; color: #fff; font-weight: bold; border-radius: 50px; margin-bottom: 20px; }
+    .products-preview { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+    .product-img { width: 100px; height: 100px; background: #f5f5f5; border-radius: 4px; }
+    .footer { text-align: center; padding: 20px; font-size: 0.875rem; color: #666; border-top: 1px solid #eee; margin-top: 30px; }
+    .btn { display: inline-block; padding: 14px 32px; background: #b8002f; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">BA GGY</div>
+    </div>
+    <div class="content">
+      <div class="offer-badge">LIMITED TIME OFFER</div>
+      <h1 style="color: #000;">Big Sale Is Here!</h1>
+      <p>Get up to <strong>50% off</strong> on selected items. Don't miss out on this exclusive offer.</p>
+      <div class="products-preview">
+        <div class="product-img"></div>
+        <div class="product-img"></div>
+        <div class="product-img"></div>
+      </div>
+      <p>Hurry! This offer ends soon.</p>
+      <p style="margin-top: 30px;">
+        <a href="/shop" class="btn">Shop the Sale</a>
+      </p>
+    </div>
+    <div class="footer">
+      <p>You're receiving this because you subscribed to our newsletter.</p>
+      <p><a href="#">Unsubscribe</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `.trim();
+  });
+
+  // Send campaign
+  nlForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const subject = document.getElementById('nl-subject').value;
+    const previewText = document.getElementById('nl-preview-text').value;
+    const body = document.getElementById('nl-body').value;
+
+    nlSendBtn.disabled = true;
+    nlSendBtn.innerHTML = '<svg class="spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"/></svg> Sending...';
+
+    try {
+      const res = await fetch('/api/admin/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, previewText, body })
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        // Show success modal
+        document.getElementById('sent-modal').classList.add('open');
+        nlForm.reset();
+      } else {
+        showToast(data.message || 'Failed to send campaign', 'error');
+        nlSendBtn.disabled = false;
+        nlSendBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Campaign';
+      }
+    } catch (err) {
+      showToast('Network error: ' + err.message, 'error');
+      nlSendBtn.disabled = false;
+      nlSendBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Campaign';
+    }
+  });
+
+  // Subscriber removal (delegated so it also works after live-search re-render)
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.subscriber-remove');
+    if (!btn) return;
+    e.preventDefault();
+    const email = btn.dataset.email;
+    if (!email) return;
+    const ok = await window.showConfirm({
+      title: 'Remove subscriber?',
+      message: `${email} will no longer receive your emails.`,
+      confirmText: 'Remove',
+      icon: 'warning'
+    });
+    if (!ok) return;
+
+    try {
+      const res = await fetch('/api/admin/newsletter/subscriber', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        btn.closest('tr')?.remove();
+        showToast('Subscriber removed');
+      } else {
+        showToast('Failed to remove subscriber', 'error');
+      }
+    } catch {
+      showToast('Network error', 'error');
+    }
+  });
+
+  // Export CSV
+  document.getElementById('export-csv-btn')?.addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/admin/newsletter/export');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ba-gy-subscribers-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      showToast('Failed to export', 'error');
+    }
+  });
+
+  // Subscriber search
+  const subSearch = document.getElementById('subscriber-search');
+  if (subSearch) {
+    subSearch.addEventListener('input', async () => {
+      const q = subSearch.value.trim();
+      try {
+        const res = await fetch(`/api/admin/newsletter/subscribers?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        const tbody = document.querySelector('.admin-table-wrap tbody');
+        if (tbody) {
+          if (data.subscribers && data.subscribers.length > 0) {
+            tbody.innerHTML = data.subscribers.map(sub => `
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:var(--space-3);">
+                    <div class="subscriber-avatar">
+                      <span style="font-weight:600;color:var(--color-white);">${sub.email ? sub.email.charAt(0).toUpperCase() : '?'}</span>
+                    </div>
+                    <span style="font-family:var(--font-mono);font-size:0.9375rem;">${sub.email}</span>
+                  </div>
+                </td>
+                <td style="color:var(--color-gray-500);font-size:0.875rem;">${sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
+                <td style="color:var(--color-gray-500);font-size:0.875rem;">${sub.updatedAt ? new Date(sub.updatedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
+                <td><span class="status-badge status-delivered">Active</span></td>
+                <td>
+                  <button class="admin-btn text-error subscriber-remove" data-email="${sub.email}">Remove</button>
+                </td>
+              </tr>
+            `).join('');
+          } else {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--color-gray-400);">No subscribers found</td></tr>`;
+          }
+        }
+      } catch {}
+    });
+  }
+
+  // Close sent modal
+  document.getElementById('sent-modal-close')?.addEventListener('click', () => {
+    document.getElementById('sent-modal').classList.remove('open');
+  });
+
+  document.getElementById('sent-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('sent-modal')) {
+      document.getElementById('sent-modal').classList.remove('open');
+    }
+  });
+</script>
+
+
+
+

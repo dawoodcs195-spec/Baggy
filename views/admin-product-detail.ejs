@@ -1,0 +1,307 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text><%= product.name %></h1>
+    <p class="page-desc" data-reveal>Product details</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand">
+          <a href="/" class="admin-brand-link">BA GGY</a>
+        </div>
+        <nav class="admin-nav">
+          <a href="/admin">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+          <a href="/admin/orders">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Orders
+            <% if (typeof totalOrders !== 'undefined' && totalOrders > 0) { %><span class="admin-nav-badge"><%= totalOrders %></span><% } %>
+          </a>
+          <a href="/admin/products" class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Products
+          </a>
+          <a href="/admin/contacts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Messages
+          </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View Store
+          </a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <div class="product-detail-admin-grid">
+          <div class="product-detail-admin-media">
+            <div class="product-detail-admin-main-img">
+              <img src="<%= imgUrl(product.images && product.images[0]) %>" alt="<%= product.name %>" />
+            </div>
+            <% if ((product.images || []).length > 1) { %>
+              <div class="product-detail-admin-thumbs">
+                <% (product.images || []).slice(1).forEach(img => { %>
+                  <img src="<%= imgUrl(img) %>" alt="" class="product-detail-admin-thumb" loading="lazy" />
+                <% }) %>
+              </div>
+            <% } %>
+          </div>
+
+          <div class="product-detail-admin-info">
+            <h2><%= product.name %></h2>
+            <p class="admin-product-category"><%= product.category %> · <%= product.subcategory %></p>
+
+            <div class="product-detail-admin-price">
+              <span class="price-current">₨<%= product.price.toLocaleString() %></span>
+              <% if (product.originalPrice) { %>
+                <span class="price-original">₨<%= product.originalPrice.toLocaleString() %></span>
+                <span class="price-save">Save ₨<%= (product.originalPrice - product.price).toLocaleString() %></span>
+              <% } %>
+            </div>
+
+            <div class="product-detail-admin-meta">
+              <div class="meta-row">
+                <span class="meta-label">ID</span>
+                <span class="meta-value" style="font-family:var(--font-mono);"><%= product.id %></span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Stock</span>
+                <span class="meta-value"><%= product.stock %> units</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Rating</span>
+                <span class="meta-value"><%= product.rating %> ★ (<%= product.reviewCount %> reviews)</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Sizes</span>
+                <span class="meta-value"><%= (product.sizes || []).join(', ') %></span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Colors</span>
+                <span class="meta-value"><%= (product.colors || []).join(', ') %></span>
+              </div>
+            </div>
+
+            <div class="product-detail-admin-toggles">
+              <label class="toggle-row">
+                <span>Featured</span>
+                <input type="checkbox" <%= product.featured ? 'checked' : '' %> />
+              </label>
+              <label class="toggle-row">
+                <span>New Arrival</span>
+                <input type="checkbox" <%= product.newArrival ? 'checked' : '' %> />
+              </label>
+            </div>
+
+            <div class="product-detail-admin-section">
+              <h3>Description</h3>
+              <p style="color:var(--color-gray-600); line-height:1.7;"><%= product.description %></p>
+            </div>
+
+            <div class="product-detail-admin-section">
+              <h3>Details</h3>
+              <ul class="details-list">
+                <% (product.details || []).forEach(d => { %>
+                  <li><%= d %></li>
+                <% }) %>
+              </ul>
+            </div>
+
+            <div class="product-detail-admin-section">
+              <h3>Care</h3>
+              <ul class="details-list">
+                <% (product.care || []).forEach(c => { %>
+                  <li><%= c %></li>
+                <% }) %>
+              </ul>
+            </div>
+
+            <div class="product-detail-admin-actions">
+              <button type="button" class="btn btn-secondary" id="edit-product-btn">Edit Product</button>
+              <a href="/product/<%= product.id %>" class="btn btn-primary" target="_blank" rel="noopener">View on Store</a>
+              <a href="/admin/products" class="btn btn-ghost">Back to Products</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Edit Product Modal -->
+<div class="admin-modal" id="edit-product-modal" role="dialog" aria-modal="true">
+  <div class="admin-modal-card" style="max-width:900px;max-height:90vh;overflow-y:auto;">
+    <button class="admin-modal-close" id="edit-modal-close" aria-label="Close">×</button>
+    <h3>Edit Product</h3>
+    <form id="edit-product-form" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:var(--space-4);">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+      <!-- Basic Info -->
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:var(--space-4);">
+        <div class="form-group"><label>Product Name *</label><input name="name" value="<%= product.name %>" required /></div>
+        <div class="form-group"><label>Price *</label><input name="price" type="number" step="0.01" value="<%= product.price %>" required /></div>
+        <div class="form-group"><label>Original Price</label><input name="originalPrice" type="number" step="0.01" value="<%= product.originalPrice || '' %>" placeholder="If on sale" /></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-4);">
+        <div class="form-group">
+          <label>Category *</label>
+          <select name="category" required>
+            <option value="jeans" <%= product.category === 'jeans' ? 'selected' : '' %>>Jeans</option>
+            <option value="shirts" <%= product.category === 'shirts' ? 'selected' : '' %>>Shirts</option>
+            <option value="accessories" <%= product.category === 'accessories' ? 'selected' : '' %>>Accessories</option>
+            <option value="uppers" <%= product.category === 'uppers' ? 'selected' : '' %>>Uppers</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Subcategory</label><input name="subcategory" value="<%= product.subcategory || '' %>" /></div>
+        <div class="form-group"><label>Stock</label><input name="stock" type="number" value="<%= product.stock %>" min="0" /></div>
+      </div>
+
+      <!-- Colors & Sizes -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+        <div class="form-group"><label>Colors (comma-separated)</label><input name="colors" value="<%= (product.colors || []).join(', ') %>" placeholder="Black, Blue, Grey" /></div>
+        <div class="form-group"><label>Sizes (comma-separated)</label><input name="sizes" value="<%= (product.sizes || []).join(', ') %>" placeholder="S, M, L, XL" /></div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group"><label>Description</label><textarea name="description" rows="3"><%= product.description %></textarea></div>
+
+      <!-- Details & Care -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+        <div class="form-group"><label>Details (one per line)</label><textarea name="details" rows="4" placeholder="Feature 1&#10;Feature 2&#10;Feature 3"><%= (product.details || []).join('\n') %></textarea></div>
+        <div class="form-group"><label>Care Instructions (one per line)</label><textarea name="care" rows="4" placeholder="Machine wash cold&#10;Do not bleach"><%= (product.care || []).join('\n') %></textarea></div>
+      </div>
+
+      <!-- Images -->
+      <div class="form-group">
+        <label>Product Images (max 5)</label>
+        <div id="current-images" style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-3);">
+          <% (product.images || []).forEach(img => { %>
+            <div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;">
+              <img src="<%= imgUrl(img) %>" alt="" style="width:100%;height:100%;object-fit:cover;" />
+              <input type="hidden" name="existingImages" value="<%= img %>" />
+            </div>
+          <% }) %>
+        </div>
+        <input type="file" id="edit-image-input" name="images" accept="image/*" multiple />
+        <div id="edit-image-preview" style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-2);"></div>
+      </div>
+
+      <!-- Flags -->
+      <div style="display:flex;flex-direction:column;gap:var(--space-2);">
+        <label class="toggle-row"><input type="checkbox" name="featured" <%= product.featured ? 'checked' : '' %> /><span>Featured</span></label>
+        <label class="toggle-row"><input type="checkbox" name="newArrival" <%= product.newArrival ? 'checked' : '' %> /><span>New Arrival</span></label>
+        <label class="toggle-row"><input type="checkbox" name="active" <%= product.active ? 'checked' : '' %> /><span>Active</span></label>
+      </div>
+
+      <div class="admin-modal-actions">
+        <button type="button" class="admin-btn" id="edit-cancel">Cancel</button>
+        <button type="submit" class="admin-btn primary" id="edit-submit-btn">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('edit-product-modal');
+  document.getElementById('edit-product-btn')?.addEventListener('click', () => modal.classList.add('open'));
+  document.getElementById('edit-modal-close')?.addEventListener('click', () => modal.classList.remove('open'));
+  document.getElementById('edit-cancel')?.addEventListener('click', () => modal.classList.remove('open'));
+
+  // Image preview for edit form
+  document.getElementById('edit-image-input')?.addEventListener('change', function() {
+    const preview = document.getElementById('edit-image-preview');
+    preview.innerHTML = '';
+    Array.from(this.files).forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const div = document.createElement('div');
+        div.style.cssText = 'position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;';
+        div.innerHTML = '<img src="'+e.target.result+'" alt="" style="width:100%;height:100%;object-fit:cover;" />';
+        preview.appendChild(div);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // Toast helper (self-contained for admin pages)
+  function showToast(message, type = 'success') {
+    const existing = document.querySelector('.toast-container');
+    if (existing) existing.remove();
+    const container = document.createElement('div');
+    container.className = 'toast-container';
+    container.setAttribute('role', 'status');
+    container.setAttribute('aria-live', 'polite');
+    container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    toast.style.cssText = 'background:' + (type === 'success' ? '#0a0a0a' : '#b8002f') + ';color:#fff;padding:14px 20px;border-radius:4px;font-size:0.875rem;font-weight:600;letter-spacing:0.03em;box-shadow:0 8px 24px rgba(0,0,0,0.18);display:flex;align-items:center;gap:10px;pointer-events:auto;animation:toastIn 0.35s ease both;';
+    toast.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (type === 'success' ? '<polyline points="20 6 9 17 4 12"/>' : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>') + '</svg><span>' + message + '</span>';
+    container.appendChild(toast);
+    document.body.appendChild(container);
+    if (!document.getElementById('toast-animations')) {
+      const s = document.createElement('style');
+      s.id = 'toast-animations';
+      s.textContent = '@keyframes toastIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } } @keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(40px); } }';
+      document.head.appendChild(s);
+    }
+    setTimeout(() => { toast.style.animation = 'toastOut 0.3s ease forwards'; setTimeout(() => container.remove(), 300); }, 2800);
+  }
+
+  document.getElementById('edit-product-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const submitBtn = document.getElementById('edit-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    const formData = new FormData(form);
+    formData.append('_csrf', document.querySelector('input[name="_csrf"]')?.value || '');
+
+    // Include existing images that weren't removed
+    const existingInputs = form.querySelectorAll('input[name="existingImages"]');
+    existingInputs.forEach(input => formData.append('existingImages', input.value));
+
+    try {
+      console.log('Sending PUT request...');
+      const res = await fetch('/api/admin/product/<%= product.id %>', {
+        method: 'PUT',
+        body: formData
+      });
+      console.log('Response status:', res.status);
+      const data = await res.json();
+      console.log('Response data:', data);
+      if (res.ok) {
+        showToast('Product updated!', 'success');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        showToast(data.message || 'Failed to update', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Changes';
+      }
+    } catch (err) {
+      console.error('Update error:', err);
+      showToast('Error updating product: ' + err.message, 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Changes';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Changes';
+    }
+  });
+  // Handle image errors globally
+  
+</script>

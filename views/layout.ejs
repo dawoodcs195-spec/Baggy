@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= pageTitle %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/public/css/main.css?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" />
+  <link rel="stylesheet" href="/public/css/admin-enhanced.css?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" />
+  <% if (typeof pageCss !== 'undefined' && pageCss) { pageCss.forEach(c => { %><link rel="stylesheet" href="<%= c %>" /><% }) } %>
+</head>
+<body data-csrf="<%= csrfToken %>">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Announcement bar -->
+  <div class="announcement-bar" role="banner">
+    <span>Free delivery on orders above ₨3,499 &nbsp;•&nbsp; Easy returns within 15 days &nbsp;•&nbsp; Secure checkout</span>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container header-inner header-editorial">
+      <button class="nav-dots icon-btn" id="nav-dots-btn" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>
+        </svg>
+      </button>
+      <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+        <ul>
+          <li><a href="/" class="<%= activePage === 'home' ? 'active' : '' %>">Home</a></li>
+          <li><a href="/shop" class="<%= activePage === 'shop' ? 'active' : '' %>">Shop</a></li>
+          <li><a href="/jeans" class="<%= category === 'jeans' ? 'active' : '' %>">Jeans</a></li>
+          <li><a href="/shirts" class="<%= category === 'shirts' ? 'active' : '' %>">Shirts</a></li>
+          <li><a href="/shop/accessories" class="<%= category === 'accessories' ? 'active' : '' %>">Accessories</a></li>
+          <li><a href="/shop/uppers" class="<%= category === 'uppers' ? 'active' : '' %>">Uppers</a></li>
+        </ul>
+      </nav>
+
+      <a href="/" class="logo" aria-label="BA GGY Home">BA GGY</a>
+
+      <div class="header-controls" role="navigation" aria-label="User controls">
+        <!-- Search -->
+        <button class="icon-btn search-toggle" aria-label="Search products" id="search-toggle-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+        <!-- Account -->
+        <% if (user) { %>
+          <div class="user-menu-wrap">
+            <button class="icon-btn user-menu-trigger" aria-label="Account menu" id="user-menu-trigger">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </button>
+            <div class="user-menu hidden" id="user-menu" role="menu" aria-label="Account menu">
+              <div class="user-menu-avatar"><span class="avatar-letter"><%= user.name ? user.name.charAt(0).toUpperCase() : 'G' %></span></div>
+              <div class="user-menu-name"><%= user.name || 'Customer' %></div>
+              <div class="user-menu-email"><%= user.email %></div>
+              <hr class="user-menu-divider" />
+              <a href="/account" class="user-menu-item" role="menuitem">My Account</a>
+              <a href="/account/orders" class="user-menu-item" role="menuitem">My Orders</a>
+              <a href="/wishlist" class="user-menu-item" role="menuitem">Wishlist</a>
+              <hr class="user-menu-divider" />
+              <button class="user-menu-item user-menu-logout" id="logout-btn" role="menuitem">Sign Out</button>
+            </div>
+          </div>
+        <% } else { %>
+          <a href="/account" class="icon-btn" aria-label="My Account">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </a>
+        <% } %>
+        <!-- Wishlist -->
+        <a href="/wishlist" class="icon-btn wishlist-btn" aria-label="Wishlist">
+          <svg class="icon-heart-empty" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <% if (wishlistCount > 0) { %><span class="badge" aria-label="Wishlist count"><%= wishlistCount %></span><% } %>
+        </a>
+        <!-- Cart -->
+        <a href="/cart" class="icon-btn cart-btn" aria-label="Shopping cart">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span class="badge cart-count <%= cart.reduce((a,i)=>a+i.qty,0) === 0 ? 'hidden' : '' %>" aria-label="Cart items"><%= cart.reduce((a,i)=>a+i.qty,0) %></span>
+        </a>
+        <% if (user && user.role === 'admin') { %>
+          <a href="/admin" class="admin-header-btn<%= activePage === 'admin' ? ' active' : '' %>">Admin</a>
+        <% } %>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="site-main">
+    <%- body %>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>Customer Service</h4>
+          <ul>
+            <li><a href="/contact">Contact Us</a></li>
+            <li><a href="/track">Track Order</a></li>
+            <li><a href="/faq">FAQs</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Information</h4>
+          <ul>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/shop">New Arrivals</a></li>
+            <li><a href="/shop">Collections</a></li>
+            <li><a href="/newsletter">Newsletter</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>The Essentials</h4>
+          <ul>
+            <li><a href="/shop">Shop All</a></li>
+<li><a href="/jeans">Baggy Jeans</a></li>
+<li><a href="/shirts">Oversized Tees</a></li>
+<li><a href="/shop/uppers">Uppers</a></li>
+<li><a href="/shop/accessories">Accessories</a></li>
+<li><a href="/account/orders">My Orders</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <a href="/" class="logo-footer">BA GGY</a>
+          <p class="footer-tagline">Fashion That Moves With You</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; <%= year %> BA GGY. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay hidden" id="search-overlay">
+    <div class="search-overlay-inner">
+      <div class="search-overlay-header">
+        <span class="search-overlay-title">Search</span>
+        <button class="search-close" aria-label="Close search">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form class="search-overlay-form" action="/shop" method="GET">
+        <input type="text" name="q" placeholder="Search for jeans, tees..." autocomplete="off" />
+        <button type="submit" class="btn btn-primary">Search</button>
+      </form>
+      <div class="search-suggestions">
+        <span>Popular:</span>
+        <a href="/jeans">Baggy Jeans</a>
+        <a href="/shirts">Oversized Tees</a>
+        <a href="/shop?q=black">Black Denim</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Newsletter Popup (disabled for now)
+  <div class="modal-overlay newsletter-popup hidden" id="newsletter-popup" role="dialog" aria-modal="true" aria-labelledby="newsletter-popup-title">
+    <div class="modal-card newsletter-card">
+      <button class="modal-close" aria-label="Close newsletter popup">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="newsletter-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </div>
+      <h2 id="newsletter-popup-title">Stay in the loop</h2>
+      <p>Get early access to drops, exclusive discounts, and behind-the-scenes content. No spam — we promise.</p>
+      <form class="newsletter-popup-form" id="newsletter-popup-form">
+        <input type="email" placeholder="Your email address" required />
+        <button type="submit" class="btn btn-primary">Subscribe</button>
+      </form>
+      <button class="btn btn-ghost modal-close">Maybe later</button>
+    </div>
+  </div>
+  -->
+
+  <!-- Size Guide Modal -->
+  <div class="modal-overlay size-guide-modal hidden" id="size-guide-modal" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
+    <div class="modal-card size-guide-card">
+      <button class="modal-close" aria-label="Close size guide">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <h2 id="size-guide-title">Size Guide</h2>
+      <p class="modal-subtitle">All measurements in inches. BA GGY fits are intentionally oversized.</p>
+      <div class="size-table-wrap">
+        <table class="size-table">
+          <thead>
+            <tr><th>Size</th><th>Waist</th><th>Length</th><th>Hip</th><th>Thigh</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>28</td><td>28"</td><td>40"</td><td>42"</td><td>26"</td></tr>
+            <tr><td>30</td><td>30"</td><td>41"</td><td>44"</td><td>27"</td></tr>
+            <tr><td>32</td><td>32"</td><td>41"</td><td>46"</td><td>28"</td></tr>
+            <tr><td>34</td><td>34"</td><td>42"</td><td>48"</td><td>29"</td></tr>
+            <tr><td>36</td><td>36"</td><td>42"</td><td>50"</td><td>30"</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="size-tips">
+        <h4>Fit tips</h4>
+        <ul>
+          <li>Our baggy jeans are cut oversized — if between sizes, size down.</li>
+          <li>Unisex tees run true-to-size with a relaxed shoulder fit.</li>
+          <li>All garments are pre-washed and won't shrink.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick View Modal -->
+  <div class="modal-overlay quick-view-modal hidden" id="quick-view-modal" role="dialog" aria-modal="true" aria-labelledby="qv-title">
+    <div class="modal-card quick-view-card">
+      <button class="modal-close" aria-label="Close quick view">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="qv-layout">
+        <div class="qv-image">
+          <img id="qv-img" src="" alt="" />
+        </div>
+        <div class="qv-info">
+          <h2 id="qv-title"></h2>
+          <p class="qv-price" id="qv-price"></p>
+          <p class="qv-desc" id="qv-desc"></p>
+          <div class="qv-sizes" id="qv-sizes"></div>
+          <div class="qv-actions">
+            <button class="btn btn-primary w-100" id="qv-add-btn">Add to Cart</button>
+            <a href="#" class="btn btn-ghost w-100" id="qv-view-btn">View Full Details</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay confirm-modal hidden" id="confirm-modal" role="dialog" aria-modal="true">
+    <div class="modal-card confirm-card">
+      <div class="confirm-icon" id="confirm-icon" aria-hidden="true"></div>
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-message"></p>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost modal-close">Cancel</button>
+        <button class="btn btn-primary" id="confirm-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="/public/js/main.js?v=<%= typeof assetV !== 'undefined' ? assetV : year %>"></script>
+  <% if (typeof pageJs !== 'undefined' && pageJs) { pageJs.forEach(j => { %><script src="<%= j %>?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" defer></script><% }) } %>
+</body>
+</html>
+
+

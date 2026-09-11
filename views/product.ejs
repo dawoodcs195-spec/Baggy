@@ -1,0 +1,146 @@
+<div class="product-page" data-product-id="<%= product.id %>">
+  <div class="container">
+    <nav class="breadcrumb" data-reveal>
+      <a href="/">Home</a>
+      <span><%= product.category.charAt(0).toUpperCase() + product.category.slice(1) %></span>
+      <span><%= product.name %></span>
+    </nav>
+
+    <div class="product-layout">
+      <div class="product-gallery" data-reveal>
+        <div class="gallery-main">
+          <img id="main-img" src="<%= imgUrl(product.images && product.images[0]) %>" alt="<%= product.name %>" />
+        </div>
+        <div class="gallery-thumbs">
+          <% (product.images || []).forEach((img, i) => { %>
+            <img src="<%= imgUrl(img) %>" alt="<%= product.name %> view <%= i + 1 %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" loading="lazy" data-index="<%= i %>" />
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="product-info" data-reveal>
+        <p class="product-category"><%= product.category === 'jeans' ? 'Baggy Jeans' : product.category === 'shirts' ? 'Oversized Tee' : product.category === 'uppers' ? 'Uppers' : product.category === 'accessories' ? 'Accessory' : product.category %></p>
+        <h1 class="product-title"><%= product.name %></h1>
+        <div class="product-rating">
+          <span class="stars" aria-hidden="true"><%= '★'.repeat(Math.floor(product.rating)) %><%= product.rating % 1 >= 0.5 ? '½' : '' %></span>
+          <span class="rating-count">(<%= product.reviewCount %> reviews)</span>
+        </div>
+        <div class="product-price-block">
+          <span class="price-current">₨<%= product.price.toLocaleString() %></span>
+          <% if (product.originalPrice) { %>
+            <span class="price-original">₨<%= product.originalPrice.toLocaleString() %></span>
+            <span class="price-save">Save ₨<%= (product.originalPrice - product.price).toLocaleString() %></span>
+          <% } %>
+        </div>
+        <p class="product-description"><%= product.description %></p>
+
+        <div class="size-selector">
+          <div class="size-selector-header">
+            <label for="size-buttons">Size</label>
+            <button class="size-guide-toggle" aria-label="Open size guide">Size Guide</button>
+          </div>
+          <div class="size-buttons" id="size-buttons">
+            <% (product.sizes || []).forEach((s, i) => { %>
+              <button class="size-btn <%= i === 0 ? 'active' : '' %>" data-size="<%= s %>" type="button"><%= s %></button>
+            <% }) %>
+          </div>
+        </div>
+        <input type="hidden" id="selected-size" name="size" value="<%= (product.sizes || [])[0] %>" />
+
+        <div class="qty-selector">
+          <label for="qty-input">Quantity</label>
+          <div class="qty-controls">
+            <button class="qty-btn" id="qty-minus" aria-label="Decrease quantity">−</button>
+            <input type="number" id="qty-input" value="1" min="1" max="<%= product.stock %>" aria-label="Quantity" />
+            <button class="qty-btn" id="qty-plus" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg add-to-cart" data-id="<%= product.id %>">
+          Add to Cart
+        </button>
+
+        <div class="product-trust">
+          <div class="trust-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+            <span>Free delivery over ₨3,499</span>
+          </div>
+          <div class="trust-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+            </svg>
+            <span>15-day returns</span>
+          </div>
+          <div class="trust-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span>Secure checkout</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-details" data-reveal>
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="details" role="tab" aria-selected="true">Details</button>
+        <button class="tab-btn" data-tab="care" role="tab">Care Guide</button>
+        <button class="tab-btn" data-tab="shipping" role="tab">Shipping</button>
+      </div>
+      <div class="tab-panels">
+        <div class="tab-panel active" id="details" role="tabpanel">
+          <ul class="details-list">
+            <% (product.details || []).forEach(d => { %>
+              <li><%= d %></li>
+            <% }) %>
+          </ul>
+        </div>
+        <div class="tab-panel" id="care" role="tabpanel">
+          <ul class="details-list">
+            <% (product.care || []).forEach(c => { %>
+              <li><%= c %></li>
+            <% }) %>
+          </ul>
+        </div>
+        <div class="tab-panel" id="shipping" role="tabpanel">
+          <ul class="details-list">
+            <li>Free delivery on orders above ₨3,499 — flat ₨299 otherwise.</li>
+            <li>Orders are confirmed within 24 hours and delivered in 2–5 working days.</li>
+            <li>15-day easy returns on unworn items with tags intact.</li>
+            <li>Cash on delivery available across Pakistan.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section related-section">
+    <div class="container">
+      <div class="section-header" data-reveal>
+        <h2 class="section-title">You May Also Like</h2>
+      </div>
+      <div class="product-grid">
+        <% products.filter(p => p.id !== product.id && p.category === product.category).slice(0, 4).forEach((p, i) => { %>
+        <div class="product-card" data-reveal style="transition-delay: <%= i * 60 %>ms" tabindex="0" role="link" aria-label="<%= p.name %>">
+          <div class="product-image-wrapper">
+            <img src="<%= imgUrl(p.images && p.images[0]) %>" alt="<%= p.name %>" class="product-image" loading="lazy" />
+            <img src="<%= imgUrl(p.images && p.images[1]) %>" alt="<%= p.name %> alternate view" class="product-image hover" loading="lazy" />
+            <div class="product-overlay">
+              <button class="quick-add" data-id="<%= p.id %>">Quick Add</button>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3><%= p.name %></h3>
+            <p class="product-category"><%= p.category === 'jeans' ? 'Baggy Jeans' : 'Oversized Tee' %></p>
+            <div class="product-price">
+              <span class="price-current">₨<%= p.price.toLocaleString() %></span>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+      </div>
+    </div>
+  </section>
+</div>

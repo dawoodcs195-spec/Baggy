@@ -1,0 +1,67 @@
+<header class="page-header" data-reveal>
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>NEWSLETTER</h1>
+    <p class="page-desc" data-reveal>Drops, discounts &amp; behind-the-scenes</p>
+  </div>
+</header>
+
+<!-- Editorial layered section: giant word behind the subscribe card -->
+<section class="newsletter-editorial" aria-label="Subscribe to the BA GGY Letter">
+  <div class="nl-giant" aria-hidden="true"><span data-split-text>LETTER</span></div>
+
+  <div class="nl-inner">
+    <p class="nl-corner nl-corner-top" data-reveal>BA GGY Letter<br /><span class="nl-corner-accent">N&deg; 01 &mdash; <%= year %></span></p>
+
+    <div class="newsletter-form-card nl-card" data-reveal style="transition-delay: 0.15s">
+      <h3>Subscribe to the BA GGY Letter</h3>
+      <p class="newsletter-privacy">By subscribing you agree to receive marketing emails from BA GGY. We'll never sell your address.</p>
+
+      <form id="newsletter-subscribe-form" autocomplete="on">
+        <div class="form-group">
+          <label for="nl-email">Email address *</label>
+          <input type="email" id="nl-email" name="email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="newsletter-digest">
+          <label>
+            <input type="checkbox" id="nl-digest" name="digest" checked />
+            <span>Send me a weekly digest instead of every drop</span>
+          </label>
+          <div class="digest-options">
+            <label class="digest-option">
+              <input type="checkbox" name="digest_topics" value="drops" checked />
+              <span>New drops</span>
+            </label>
+            <label class="digest-option">
+              <input type="checkbox" name="digest_topics" value="discounts" checked />
+              <span>Discounts &amp; sales</span>
+            </label>
+            <label class="digest-option">
+              <input type="checkbox" name="digest_topics" value="stories" />
+              <span>Behind the scenes</span>
+            </label>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Subscribe</button>
+      </form>
+
+      <div class="newsletter-subscribed" id="newsletter-subscribed">
+        <div class="check-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h3>You're on the list</h3>
+        <p>Welcome to the BA GGY inner circle. Keep an eye on your inbox &mdash; your first email lands soon.</p>
+        <button type="button" class="btn btn-ghost" id="newsletter-dismiss">Awesome, thanks</button>
+      </div>
+
+      <div class="newsletter-error" id="newsletter-error" style="display:none;"></div>
+    </div>
+
+    <p class="nl-corner nl-corner-bottom" data-reveal style="transition-delay: 0.25s">No spam<br />Unsubscribe anytime</p>
+  </div>
+</section>
+
+<p class="newsletter-footer nl-footer-note" data-reveal>
+  Questions? Email <a href="mailto:dawood.cs195@gmail.com">dawood.cs195@gmail.com</a> or <a href="/contact">get in touch</a>.
+</p>

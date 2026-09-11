@@ -1,0 +1,56 @@
+<div class="auth-page">
+  <div class="container">
+    <div class="auth-layout">
+      <div class="auth-visual">
+        <img src="/public/images/b2.jpg" alt="" loading="lazy" />
+        <div class="auth-visual-content">
+          <div class="auth-brand">BA GGY</div>
+          <p class="auth-eyebrow">Join the Club</p>
+          <p class="auth-quote">First dibs on drops. Always.</p>
+        </div>
+      </div>
+
+      <div class="auth-form-card" data-reveal>
+        <h2 data-split-text>Create Account</h2>
+        <p class="auth-sub">Free delivery on orders above ₨3,499 and easy returns within 15 days.</p>
+
+        <div id="auth-error" class="auth-error" style="display:none;"></div>
+        <div id="auth-success" class="auth-success" style="display:none;"></div>
+
+        <form id="register-form" autocomplete="on" method="POST" action="/api/auth/register">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-name">Full name *</label>
+              <input type="text" id="reg-name" name="name" placeholder="Your name" required autocomplete="name" />
+            </div>
+            <div class="form-group">
+              <label for="reg-phone">Phone (optional)</label>
+              <input type="tel" id="reg-phone" name="phone" placeholder="+92 300 1234567" autocomplete="tel" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email address *</label>
+            <input type="email" id="reg-email" name="email" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password *</label>
+            <input type="password" id="reg-password" name="password" placeholder="At least 8 characters" required autocomplete="new-password" minlength="8" />
+            <div class="pw-meter"><div class="pw-meter-bar" id="reg-pw-bar"></div></div>
+            <p class="pw-hint" id="reg-pw-hint" role="status"></p>
+          </div>
+          <div class="form-group" style="font-size:0.8125rem; color:var(--color-gray-500); margin-bottom:var(--space-4);">
+            By signing up you agree to our <a href="#" style="color:var(--color-accent); font-weight:600;">Terms</a> and <a href="#" style="color:var(--color-accent); font-weight:600;">Privacy Policy</a>.
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Create Account</button>
+        </form>
+
+        <div class="auth-divider">or</div>
+        <p style="font-size:0.875rem; color:var(--color-gray-500); margin-bottom:var(--space-4);">Already have an account?</p>
+        <a href="/account?action=login" class="btn btn-secondary w-100">Sign In</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+

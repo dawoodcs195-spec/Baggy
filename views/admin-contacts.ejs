@@ -1,0 +1,294 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>MESSAGES</h1>
+    <p class="page-desc" data-reveal>View & manage customer contact messages</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand"><a href="/" class="admin-brand-link">BA GGY</a></div>
+        <nav class="admin-nav">
+          <a href="/admin"><span aria-hidden="true">▦</span> Dashboard</a>
+          <a href="/admin/orders"><span aria-hidden="true">▢</span> Orders</a>
+          <a href="/admin/products"><span aria-hidden="true">◇</span> Products</a>
+          <a href="/admin/inventory"><span aria-hidden="true">▤</span> Inventory</a>
+          <a href="/admin/users"><span aria-hidden="true">👤</span> Customers</a>
+          <a href="/admin/contacts" class="active"><span aria-hidden="true">✉</span> Messages</a>
+          <a href="/admin/newsletter"><span aria-hidden="true">📧</span> Newsletter</a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">View Store</a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">Sign Out</button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <div class="admin-bar">
+          <div class="admin-bar-left">
+            <h2>Contact Messages</h2>
+            <p class="admin-sub" style="margin-bottom:0;"><%= totalMessages %> message(s) · <span class="status-badge status-pending"><%= newMessages %> new</span></p>
+          </div>
+          <div class="admin-bar-right">
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="message-status-filter" class="sr-only">Filter by status</label>
+              <select id="message-status-filter" class="search-input" style="height:42px;">
+                <option value="" <%= !statusFilter ? 'selected' : '' %>>All messages</option>
+                <option value="new" <%= statusFilter === 'new' ? 'selected' : '' %>>New</option>
+                <option value="read" <%= statusFilter === 'read' ? 'selected' : '' %>>Read</option>
+                <option value="replied" <%= statusFilter === 'replied' ? 'selected' : '' %>>Replied</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <% if (messages && messages.length > 0) { %>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>From</th>
+                  <th>Subject</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% messages.forEach(msg => { %>
+                  <tr style="opacity: <%= msg.status === 'new' ? '1' : '0.75' %>">
+                    <td>
+                      <div>
+                        <strong style="font-size:0.9375rem;"><%= msg.name %></strong>
+                        <span style="font-size:0.75rem;color:var(--color-gray-500);display:block;font-family:var(--font-mono);"><%= msg.email %></span>
+                      </div>
+                    </td>
+                    <td>
+                      <strong style="font-size:0.9375rem;"><%= msg.subject || '(No subject)' %></strong>
+                    </td>
+                    <td style="color:var(--color-gray-600);font-size:0.875rem;">
+                      <%= msg.message.substring(0, 80) %><% if (msg.message.length > 80) { %>...<% } %>
+                    </td>
+                    <td>
+                      <span class="status-badge status-<%= msg.status %>"><%= msg.status %></span>
+                    </td>
+                    <td style="color:var(--color-gray-500);font-size:0.8125rem;">
+                      <%= msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' %>
+                    </td>
+                    <td>
+                      <div class="admin-actions">
+                        <button class="admin-btn view-message-btn" data-message-id="<%= msg._id %>" data-status="<%= msg.status %>">View</button>
+                        <button class="admin-btn text-error delete-message-btn" data-message-id="<%= msg._id %>">Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="admin-pagination">
+            <div class="pagination-info">
+              Showing page <%= page %> of <%= totalPages || 1 %>
+            </div>
+            <div class="pagination-controls">
+              <button class="pagination-btn" data-page="prev" <%= page <= 1 ? 'disabled' : '' %>>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <% for (let p = 1; p <= (totalPages || 1); p++) { %>
+                <button class="pagination-btn <%= p === page ? 'active' : '' %>" data-page="<%= p %>"><%= p %></button>
+              <% } %>
+              <button class="pagination-btn" data-page="next" <%= page >= (totalPages || 1) ? 'disabled' : '' %>>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="admin-empty">
+            <h3>No messages</h3>
+            <p>Contact form submissions will appear here.</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Message detail modal -->
+<div class="admin-modal" id="message-modal" role="dialog" aria-modal="true" aria-labelledby="message-modal-title">
+  <div class="admin-modal-card" style="max-width:600px;">
+    <button class="admin-modal-close" id="message-modal-close" aria-label="Close">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h3 id="message-modal-title">Message Details</h3>
+    <div style="border-bottom:1px solid var(--color-gray-200);padding-bottom:var(--space-4);margin-bottom:var(--space-4);">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-3);">
+        <div>
+          <strong style="font-size:0.75rem;text-transform:uppercase;color:var(--color-gray-500);">From</strong>
+          <p style="margin:4px 0 0;font-weight:600;" id="msg-from-name">—</p>
+          <p style="margin:0;font-size:0.875rem;color:var(--color-gray-600);font-family:var(--font-mono);" id="msg-from-email">—</p>
+        </div>
+        <div>
+          <strong style="font-size:0.75rem;text-transform:uppercase;color:var(--color-gray-500);">Status</strong>
+          <p style="margin:4px 0 0;" id="msg-status-display"><span class="status-badge">new</span></p>
+        </div>
+      </div>
+      <div>
+        <strong style="font-size:0.75rem;text-transform:uppercase;color:var(--color-gray-500);">Subject</strong>
+        <p style="margin:4px 0 0;font-weight:600;" id="msg-subject">—</p>
+      </div>
+    </div>
+    <div style="margin-bottom:var(--space-6);">
+      <strong style="font-size:0.75rem;text-transform:uppercase;color:var(--color-gray-500);">Message</strong>
+      <p style="margin:8px 0 0;line-height:1.6;white-space:pre-wrap;word-break:break-word;" id="msg-body">—</p>
+    </div>
+    <div class="admin-modal-actions">
+      <button type="button" class="admin-btn" id="message-modal-close-btn">Close</button>
+      <button type="button" class="admin-btn text-error" id="message-delete-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `position:fixed;bottom:20px;right:20px;padding:16px 24px;border-radius:8px;background:${type === 'error' ? '#dc2626' : '#16a34a'};color:white;font-weight:500;box-shadow:0 10px 25px -5px rgba(0,0,0,0.2);z-index:10000;`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  let currentMessageId = null;
+
+  document.querySelectorAll('.view-message-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      currentMessageId = btn.dataset.messageId;
+      const row = btn.closest('tr');
+      const statusBadge = row.cells[3].querySelector('.status-badge');
+      try {
+        const response = await fetch(`/api/admin/contact/${encodeURIComponent(currentMessageId)}`);
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.message || 'Unable to load message');
+        const message = data.message;
+        document.getElementById('msg-from-name').textContent = message.name;
+        document.getElementById('msg-from-email').textContent = message.email;
+        document.getElementById('msg-subject').textContent = message.subject || '(No subject)';
+        document.getElementById('msg-status-display').innerHTML = `<span class="status-badge status-${message.status}">${message.status}</span>`;
+        document.getElementById('msg-body').textContent = message.message;
+        document.getElementById('message-modal').classList.add('open');
+
+        if (message.status === 'new') {
+          const updateResponse = await fetch(`/api/admin/contact/${encodeURIComponent(currentMessageId)}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'read' })
+          });
+          if (updateResponse.ok) {
+            statusBadge.textContent = 'read';
+            statusBadge.className = 'status-badge status-read';
+            document.getElementById('msg-status-display').innerHTML = '<span class="status-badge status-read">read</span>';
+            row.style.opacity = '0.75';
+          }
+        }
+      } catch (error) {
+        showToast(error.message || 'Unable to load message', 'error');
+      }
+    });
+  });
+
+  document.getElementById('message-modal-close')?.addEventListener('click', () => {
+    document.getElementById('message-modal').classList.remove('open');
+  });
+
+  document.getElementById('message-modal-close-btn')?.addEventListener('click', () => {
+    document.getElementById('message-modal').classList.remove('open');
+  });
+
+  document.getElementById('message-delete-btn')?.addEventListener('click', async () => {
+    if (!currentMessageId) return;
+    const ok = await window.showConfirm({
+      title: 'Delete this message?',
+      message: 'It will be permanently removed from your inbox.',
+      confirmText: 'Delete',
+      icon: 'danger'
+    });
+    if (!ok) return;
+    try {
+      const res = await fetch(`/api/admin/contact/${currentMessageId}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Message deleted');
+        document.getElementById('message-modal').classList.remove('open');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        showToast('Failed to delete message', 'error');
+      }
+    } catch {
+      showToast('Network error', 'error');
+    }
+  });
+
+  document.querySelectorAll('.delete-message-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const ok = await window.showConfirm({
+        title: 'Delete this message?',
+        message: 'It will be permanently removed from your inbox.',
+        confirmText: 'Delete',
+        icon: 'danger'
+      });
+      if (!ok) return;
+      const msgId = btn.dataset.messageId;
+      try {
+        const res = await fetch(`/api/admin/contact/${msgId}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('Message deleted');
+          setTimeout(() => location.reload(), 500);
+        } else {
+          showToast('Failed to delete', 'error');
+        }
+      } catch {
+        showToast('Network error', 'error');
+      }
+    });
+  });
+
+  // Pagination
+  document.querySelectorAll('.pagination-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const page = btn.dataset.page;
+      if (page === 'prev') {
+        const currentPage = parseInt(document.querySelector('.pagination-info').textContent.match(/page (\d+)/)?.[1] || '1');
+        window.location.href = `/admin/contacts?page=${Math.max(1, currentPage - 1)}${window.location.search.includes('status=') ? '&status=' + new URLSearchParams(window.location.search).get('status') : ''}`;
+      } else if (page === 'next') {
+        const currentPage = parseInt(document.querySelector('.pagination-info').textContent.match(/page (\d+)/)?.[1] || '1');
+        window.location.href = `/admin/contacts?page=${currentPage + 1}${window.location.search.includes('status=') ? '&status=' + new URLSearchParams(window.location.search).get('status') : ''}`;
+      } else {
+        window.location.href = `/admin/contacts?page=${page}${window.location.search.includes('status=') ? '&status=' + new URLSearchParams(window.location.search).get('status') : ''}`;
+      }
+    });
+  });
+
+  // Status filter
+  document.getElementById('message-status-filter')?.addEventListener('change', (e) => {
+    window.location.href = `/admin/contacts${e.target.value ? '?status=' + e.target.value : ''}`;
+  });
+
+  document.getElementById('message-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('message-modal')) {
+      document.getElementById('message-modal').classList.remove('open');
+    }
+  });
+</script>
+
+
+
+

@@ -1,0 +1,180 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>COUPONS</h1>
+    <p class="page-desc" data-reveal>Create & manage promotional discounts</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand"><a href="/" class="admin-brand-link">BA GGY</a></div>
+        <nav class="admin-nav">
+          <a href="/admin"><span aria-hidden="true">▦</span> Dashboard</a>
+          <a href="/admin/orders"><span aria-hidden="true">▢</span> Orders</a>
+          <a href="/admin/products"><span aria-hidden="true">◇</span> Products</a>
+          <a href="/admin/inventory"><span aria-hidden="true">▤</span> Inventory</a>
+          <a href="/admin/users"><span aria-hidden="true">👤</span> Customers</a>
+          <a href="/admin/contacts"><span aria-hidden="true">✉</span> Messages</a>
+          <a href="/admin/coupons" class="active"><span aria-hidden="true">%</span> Coupons</a>
+          <a href="/admin/newsletter"><span aria-hidden="true">📧</span> Newsletter</a>
+          <a href="/admin/settings"><span aria-hidden="true">⚙</span> Settings</a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">View Store</a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">Sign Out</button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <div class="admin-bar">
+          <div class="admin-bar-left">
+            <h2>Promotional Coupons</h2>
+            <p class="admin-sub" style="margin-bottom:0;"><%= total %> coupon(s)</p>
+          </div>
+          <div class="admin-bar-right">
+            <button class="btn btn-primary" id="add-coupon-btn">+ Add Coupon</button>
+          </div>
+        </div>
+
+        <% if (coupons && coupons.length > 0) { %>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr><th>Code</th><th>Discount</th><th>Minimum Order</th><th>Usage</th><th>Expires</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                <% coupons.forEach(coupon => {
+                  const expired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+                  const exhausted = coupon.usageLimit && coupon.usedCount >= coupon.usageLimit;
+                  const enabled = coupon.active && !expired && !exhausted;
+                %>
+                  <tr>
+                    <td><strong style="font-family:var(--font-mono);font-size:1rem;"><%= coupon.code %></strong></td>
+                    <td><strong><%= coupon.type === 'percent' ? coupon.value + '%' : '₨' + coupon.value.toLocaleString() %></strong><% if (coupon.maxDiscount) { %><span style="display:block;font-size:0.75rem;color:var(--color-gray-500);">Max ₨<%= coupon.maxDiscount.toLocaleString() %></span><% } %></td>
+                    <td style="color:var(--color-gray-500);">₨<%= (coupon.minOrder || 0).toLocaleString() %></td>
+                    <td><%= coupon.usedCount || 0 %><%= coupon.usageLimit ? ' / ' + coupon.usageLimit : '' %></td>
+                    <td style="color:var(--color-gray-500);font-size:0.8125rem;"><%= coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never' %></td>
+                    <td><span class="status-badge <%= enabled ? 'status-delivered' : 'status-cancelled' %>"><%= enabled ? 'Active' : (expired ? 'Expired' : exhausted ? 'Used up' : 'Disabled') %></span></td>
+                    <td style="white-space:nowrap;">
+                      <button class="admin-btn toggle-coupon-btn" data-coupon-id="<%= coupon._id %>" data-coupon-code="<%= coupon.code %>" data-active="<%= coupon.active %>"><%= coupon.active ? 'Disable' : 'Enable' %></button>
+                      <button class="admin-btn text-error delete-coupon-btn" data-coupon-id="<%= coupon._id %>" data-coupon-code="<%= coupon.code %>">Delete</button>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+          <div class="admin-pagination">
+            <div class="pagination-info">Showing page <%= page %> of <%= totalPages || 1 %></div>
+            <div class="pagination-controls">
+              <button class="pagination-btn" data-page="prev" <%= page <= 1 ? 'disabled' : '' %>>‹</button>
+              <% for (let p = 1; p <= (totalPages || 1); p++) { %><button class="pagination-btn <%= p === page ? 'active' : '' %>" data-page="<%= p %>"><%= p %></button><% } %>
+              <button class="pagination-btn" data-page="next" <%= page >= (totalPages || 1) ? 'disabled' : '' %>>›</button>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="admin-empty"><h3>No coupons yet</h3><p>Create a coupon to offer customers a discount.</p><button class="btn btn-primary" id="add-coupon-empty-btn">Create Coupon</button></div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="admin-modal" id="coupon-modal" role="dialog" aria-modal="true" aria-labelledby="coupon-modal-title">
+  <div class="admin-modal-card" style="max-width:560px;">
+    <button class="admin-modal-close" id="coupon-modal-close" aria-label="Close">×</button>
+    <h3 id="coupon-modal-title">Create Coupon</h3>
+    <form id="coupon-form" style="display:flex;flex-direction:column;gap:var(--space-4);">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+        <div class="form-group"><label for="coupon-code">Code *</label><input id="coupon-code" name="code" required maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" placeholder="WELCOME10" /></div>
+        <div class="form-group"><label for="coupon-type">Discount Type *</label><select id="coupon-type" name="type"><option value="percent">Percentage</option><option value="fixed">Fixed amount</option></select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+        <div class="form-group"><label for="coupon-value">Discount Value *</label><input id="coupon-value" name="value" type="number" min="0.01" step="0.01" required /></div>
+        <div class="form-group"><label for="coupon-min-order">Minimum Order (₨)</label><input id="coupon-min-order" name="minOrder" type="number" min="0" step="100" value="0" /></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+        <div class="form-group"><label for="coupon-max-discount">Max Discount (₨)</label><input id="coupon-max-discount" name="maxDiscount" type="number" min="0" step="100" placeholder="Optional" /></div>
+        <div class="form-group"><label for="coupon-usage-limit">Usage Limit</label><input id="coupon-usage-limit" name="usageLimit" type="number" min="1" step="1" placeholder="Unlimited" /></div>
+      </div>
+      <div class="form-group"><label for="coupon-expires">Expires At</label><input id="coupon-expires" name="expiresAt" type="datetime-local" /></div>
+      <div id="coupon-error" class="auth-error" style="display:none;"></div>
+      <div class="admin-modal-actions"><button type="button" class="admin-btn" id="coupon-cancel">Cancel</button><button type="submit" class="admin-btn primary">Create Coupon</button></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const couponModal = document.getElementById('coupon-modal');
+  const openCouponModal = () => couponModal?.classList.add('open');
+  document.getElementById('add-coupon-btn')?.addEventListener('click', openCouponModal);
+  document.getElementById('add-coupon-empty-btn')?.addEventListener('click', openCouponModal);
+  document.getElementById('coupon-modal-close')?.addEventListener('click', () => couponModal.classList.remove('open'));
+  document.getElementById('coupon-cancel')?.addEventListener('click', () => couponModal.classList.remove('open'));
+
+  document.getElementById('coupon-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const payload = Object.fromEntries(new FormData(form).entries());
+    payload.code = payload.code.trim().toUpperCase();
+    ['value', 'minOrder', 'maxDiscount', 'usageLimit'].forEach(key => { if (payload[key] === '') delete payload[key]; else if (payload[key] !== undefined) payload[key] = Number(payload[key]); });
+    if (payload.expiresAt) payload.expiresAt = new Date(payload.expiresAt).toISOString();
+    try {
+      const response = await fetch('/api/admin/coupons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.message || 'Could not create coupon');
+      location.reload();
+    } catch (error) {
+      const el = document.getElementById('coupon-error'); el.textContent = error.message; el.style.display = 'block';
+    }
+  });
+
+  document.querySelectorAll('.delete-coupon-btn').forEach(btn => btn.addEventListener('click', async () => {
+    const ok = await window.showConfirm({
+      title: `Delete coupon ${btn.dataset.couponCode}?`,
+      message: 'Customers will no longer be able to use this code at checkout.',
+      confirmText: 'Delete Coupon',
+      icon: 'danger'
+    });
+    if (!ok) return;
+    const response = await fetch(`/api/admin/coupons/${encodeURIComponent(btn.dataset.couponId)}`, { method: 'DELETE' });
+    if (response.ok) location.reload();
+    else window.showAlert('The coupon could not be deleted. Please try again.', { title: 'Delete Failed', type: 'danger' });
+  }));
+
+  document.querySelectorAll('.toggle-coupon-btn').forEach(btn => btn.addEventListener('click', async () => {
+    const enabling = btn.dataset.active !== 'true';
+    const ok = await window.showConfirm({
+      title: (enabling ? 'Enable ' : 'Disable ') + 'coupon ' + btn.dataset.couponCode + '?',
+      message: enabling ? 'Customers will be able to use this code at checkout again.' : 'Customers will no longer be able to use this code. Existing orders are unaffected.',
+      confirmText: enabling ? 'Enable' : 'Disable',
+      icon: enabling ? 'success' : 'warning'
+    });
+    if (!ok) return;
+    btn.disabled = true;
+    try {
+      const response = await fetch('/api/admin/coupons/' + encodeURIComponent(btn.dataset.couponId) + '/toggle', { method: 'PATCH' });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.message || 'Failed');
+      location.reload();
+    } catch (error) {
+      btn.disabled = false;
+      window.showAlert(error.message || 'Could not update the coupon.', { title: 'Update Failed', type: 'danger' });
+    }
+  }));
+
+  document.querySelectorAll('.pagination-btn').forEach(btn => btn.addEventListener('click', () => {
+    const current = parseInt(document.querySelector('.pagination-info')?.textContent.match(/page (\d+)/)?.[1] || '1');
+    const target = btn.dataset.page === 'prev' ? Math.max(1, current - 1) : btn.dataset.page === 'next' ? current + 1 : btn.dataset.page;
+    location.href = `/admin/coupons?page=${target}`;
+  }));
+</script>
+
+
+
+

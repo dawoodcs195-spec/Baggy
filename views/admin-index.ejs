@@ -1,0 +1,371 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>ADMIN</h1>
+    <p class="page-desc" data-reveal>BA GGY store management</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand">
+          <a href="/" class="admin-brand-link">BA GGY</a>
+        </div>
+        <nav class="admin-nav">
+          <a href="/admin" class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+          <a href="/admin/orders">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Orders
+            <% if (totalOrders > 0) { %><span class="admin-nav-badge"><%= totalOrders %></span><% } %>
+          </a>
+          <a href="/admin/products">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Products
+            <% if (totalProducts > 0) { %><span class="admin-nav-badge"><%= totalProducts %></span><% } %>
+          </a>
+          <a href="/admin/inventory">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
+            Inventory
+          </a>
+          <a href="/admin/contacts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Messages
+          </a>
+          <a href="/admin/coupons">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="13" y1="5" x2="13" y2="19"/></svg>
+            Coupons
+          </a>
+          <a href="/admin/newsletter">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Newsletter
+          </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View Store
+          </a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <div class="admin-content-header">
+          <div>
+            <h2>Dashboard</h2>
+            <p class="admin-sub" data-reveal>Overview of your BA GGY store</p>
+          </div>
+          <div class="admin-date-display">
+            <span id="current-date"><%= new Date().toLocaleDateString('en-PK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="admin-stat-grid">
+          <div class="admin-stat-card">
+            <div class="admin-stat-icon orders">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">Total Orders</div>
+              <div class="admin-stat-value"><%= totalOrders %></div>
+              <div class="admin-stat-change positive">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                All time
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card">
+            <div class="admin-stat-icon products">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            </div>
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">Products</div>
+              <div class="admin-stat-value"><%= totalProducts %></div>
+              <div class="admin-stat-change">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                In catalog
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card">
+            <div class="admin-stat-icon revenue">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">Total Revenue</div>
+              <div class="admin-stat-value">₨<%= totalRevenue ? totalRevenue.toLocaleString() : '0' %></div>
+              <div class="admin-stat-change">
+                From all orders
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card">
+            <div class="admin-stat-icon subscribers">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">Newsletter</div>
+              <div class="admin-stat-value"><%= newsletterToday %></div>
+              <div class="admin-stat-change today">
+                Signups today
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card">
+            <div class="admin-stat-icon revenue">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="13" y1="5" x2="13" y2="19"/></svg>
+            </div>
+            <div class="admin-stat-content">
+              <div class="admin-stat-label">Coupons</div>
+              <div class="admin-stat-value"><%= totalCoupons %></div>
+              <div class="admin-stat-change">
+                <%= activeCoupons %> active
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="admin-quick-actions">
+          <a href="/admin/orders" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+            Manage Orders
+          </a>
+          <a href="/admin/products" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .32 1.87l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.87-.32 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.87.32l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .32-1.87 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.32-1.87l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.87.32H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.87-.32l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.32 1.87V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Manage Products
+          </a>
+          <a href="/admin/coupons" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="13" y1="5" x2="13" y2="19"/></svg>
+            Manage Coupons
+          </a>
+          <a href="/admin/newsletter" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            View Subscribers
+          </a>
+        </div>
+
+        <!-- Bottom Grid: Recent Orders + Revenue -->
+        <div class="admin-bottom-grid">
+          <!-- Recent Orders -->
+          <div class="admin-recent-orders">
+            <div class="admin-section-header">
+              <h3>Recent Orders</h3>
+              <a href="/admin/orders" class="admin-link">View All</a>
+            </div>
+
+            <% if (recentOrders && recentOrders.length > 0) { %>
+              <div class="admin-orders-list">
+                <% recentOrders.forEach(order => { %>
+                  <div class="admin-order-item">
+                    <div class="admin-order-info">
+                      <span class="admin-order-id" style="font-family:var(--font-mono);font-weight:600;"><%= order.orderId %></span>
+                      <span class="admin-order-customer"><%= order.customer.name %></span>
+                      <span class="admin-order-items-summary">
+                        <% order.items.slice(0, 2).forEach(item => { %>
+                          <span class="admin-order-item-tag"><%= item.name %> ×<%= item.qty %></span>
+                        <% }) %>
+                        <% if (order.items.length > 2) { %>
+                          <span class="admin-order-item-more">+<%= order.items.length - 2 %> more</span>
+                        <% } %>
+                      </span>
+                    </div>
+                    <div class="admin-order-meta">
+                      <span class="status-badge status-<%= order.status %>"><%= order.status %></span>
+                      <span class="admin-order-total">₨<%= order.total.toLocaleString() %></span>
+                      <span class="admin-order-date">
+                        <%= order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }) : '—' %>
+                      </span>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="admin-empty-small">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+                <p>No orders yet</p>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Order Status Breakdown -->
+          <div class="admin-status-breakdown">
+            <div class="admin-section-header">
+              <h3>Order Status</h3>
+            </div>
+
+            <div class="status-chart">
+              <div class="status-bar-group">
+                <div class="status-bar-row">
+                  <span class="status-label">Delivered</span>
+                  <div class="status-bar-track">
+                    <div class="status-bar-fill status-delivered" style="width:<%= totalOrders > 0 ? (deliveredOrders / totalOrders * 100) : 0 %>%;"></div>
+                  </div>
+                  <span class="status-count"><%= deliveredOrders %></span>
+                </div>
+                <div class="status-bar-row">
+                  <span class="status-label">Shipped</span>
+                  <div class="status-bar-track">
+                    <div class="status-bar-fill status-shipped" style="width:<%= totalOrders > 0 ? (shippedOrders / totalOrders * 100) : 0 %>%;"></div>
+                  </div>
+                  <span class="status-count"><%= shippedOrders %></span>
+                </div>
+                <div class="status-bar-row">
+                  <span class="status-label">Processing</span>
+                  <div class="status-bar-track">
+                    <div class="status-bar-fill status-processing" style="width:<%= totalOrders > 0 ? (processingOrders / totalOrders * 100) : 0 %>%;"></div>
+                  </div>
+                  <span class="status-count"><%= processingOrders %></span>
+                </div>
+                <div class="status-bar-row">
+                  <span class="status-label">Confirmed</span>
+                  <div class="status-bar-track">
+                    <div class="status-bar-fill status-confirmed" style="width:<%= totalOrders > 0 ? (confirmedOrders / totalOrders * 100) : 0 %>%;"></div>
+                  </div>
+                  <span class="status-count"><%= confirmedOrders %></span>
+                </div>
+                <div class="status-bar-row">
+                  <span class="status-label">Pending</span>
+                  <div class="status-bar-track">
+                    <div class="status-bar-fill status-pending" style="width:<%= totalOrders > 0 ? (pendingOrders / totalOrders * 100) : 0 %>%;"></div>
+                  </div>
+                  <span class="status-count"><%= pendingOrders %></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-status-legend">
+              <span class="legend-item"><span class="legend-dot status-delivered"></span> Delivered</span>
+              <span class="legend-item"><span class="legend-dot status-shipped"></span> Shipped</span>
+              <span class="legend-item"><span class="legend-dot status-processing"></span> Processing</span>
+              <span class="legend-item"><span class="legend-dot status-confirmed"></span> Confirmed</span>
+              <span class="legend-item"><span class="legend-dot status-pending"></span> Pending</span>
+            </div>
+          </div>
+
+          <!-- Top Products -->
+          <div class="admin-top-products">
+            <div class="admin-section-header">
+              <h3>Top Products</h3>
+              <a href="/admin/products" class="admin-link">View All</a>
+            </div>
+
+            <% if (topProducts && topProducts.length > 0) { %>
+              <div class="admin-product-list">
+                <% topProducts.forEach((product, idx) => { %>
+                  <div class="admin-product-item">
+                    <div class="admin-product-rank"><%= idx + 1 %></div>
+                    <div class="admin-product-info">
+                      <img src="<%= imgUrl(product.images && product.images[0]) %>" alt="" class="admin-product-img" loading="lazy" decoding="async" />
+                      <div class="admin-product-details">
+                        <strong class="admin-product-name"><%= product.name %></strong>
+                        <span class="admin-product-category" style="font-size:0.75rem;color:var(--color-gray-400);"><%= product.category %> · <%= product.subcategory %></span>
+                      </div>
+                    </div>
+                    <div class="admin-product-stats">
+                      <span class="admin-product-sold"><%= product.soldCount || 0 %> sold</span>
+                      <span class="admin-product-revenue">₨<%= (product.revenue || 0).toLocaleString() %></span>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="admin-empty-small">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                <p>No products yet</p>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Quick Note -->
+          <div class="admin-store-url-note">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            <div>
+              <strong>Store URL:</strong>
+              <a href="/" target="_blank" rel="noopener">http://localhost:3001</a>
+              <span style="font-size:0.8125rem;color:var(--color-gray-400);display:block;margin-top:4px;">Click to open the store in a new tab</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coupon Performance -->
+        <div class="admin-bottom-grid" style="grid-template-columns: 1fr;">
+          <div class="admin-recent-orders">
+            <div class="admin-section-header">
+              <h3>Coupon Performance</h3>
+              <a href="/admin/coupons" class="admin-link">Manage Coupons</a>
+            </div>
+            <div class="admin-coupon-summary">
+              <div class="admin-coupon-stat">
+                <span class="admin-coupon-stat-value"><%= couponAnalytics.ordersWithCoupon %></span>
+                <span class="admin-coupon-stat-label">Orders with coupon</span>
+              </div>
+              <div class="admin-coupon-stat">
+                <span class="admin-coupon-stat-value">₨<%= couponAnalytics.totalDiscount.toLocaleString() %></span>
+                <span class="admin-coupon-stat-label">Total discounts given</span>
+              </div>
+              <div class="admin-coupon-stat">
+                <span class="admin-coupon-stat-value">₨<%= couponAnalytics.influencedRevenue.toLocaleString() %></span>
+                <span class="admin-coupon-stat-label">Revenue influenced</span>
+              </div>
+            </div>
+            <% if (couponAnalytics.top && couponAnalytics.top.length > 0) { %>
+              <div class="admin-product-list" style="margin-top: var(--space-4);">
+                <% couponAnalytics.top.forEach((c, idx) => { %>
+                  <div class="admin-product-item">
+                    <div class="admin-product-rank"><%= idx + 1 %></div>
+                    <div class="admin-product-info">
+                      <span class="admin-coupon-code-badge"><%= c.code %></span>
+                    </div>
+                    <div class="admin-product-stats">
+                      <span class="admin-product-sold"><%= c.uses %> use<%= c.uses === 1 ? '' : 's' %></span>
+                      <span class="admin-product-revenue">₨<%= Math.round(c.revenue).toLocaleString() %></span>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="admin-empty-small" style="margin-top: var(--space-4);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="13" y1="5" x2="13" y2="19"/></svg>
+                <p>No coupon usage yet</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+        <div class="admin-docs-note">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span>Session-based admin access. Only <code>admin@baggy.pk</code> can sign in to manage the store.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Highlight today's date
+  document.addEventListener('DOMContentLoaded', function() {
+    const dateEl = document.getElementById('current-date');
+    if (dateEl) {
+      dateEl.style.color = 'var(--color-accent)';
+      dateEl.style.fontWeight = '600';
+    }
+  });
+</script>
+
+
+
+

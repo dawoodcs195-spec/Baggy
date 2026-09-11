@@ -1,0 +1,149 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>CUSTOMERS</h1>
+    <p class="page-desc" data-reveal>Manage user accounts & view purchase history</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand"><a href="/" class="admin-brand-link">BA GGY</a></div>
+        <nav class="admin-nav">
+          <a href="/admin"><span aria-hidden="true">▦</span> Dashboard</a>
+          <a href="/admin/orders"><span aria-hidden="true">▢</span> Orders</a>
+          <a href="/admin/products"><span aria-hidden="true">◇</span> Products</a>
+          <a href="/admin/inventory"><span aria-hidden="true">▤</span> Inventory</a>
+          <a href="/admin/users" class="active"><span aria-hidden="true">👤</span> Customers</a>
+          <a href="/admin/contacts"><span aria-hidden="true">✉</span> Messages</a>
+          <a href="/admin/newsletter"><span aria-hidden="true">📧</span> Newsletter</a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">View Store</a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">Sign Out</button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <div class="admin-bar">
+          <div class="admin-bar-left">
+            <h2>All Customers</h2>
+            <p class="admin-sub" style="margin-bottom:0;"><%= totalUsers %> user(s)</p>
+          </div>
+          <div class="admin-bar-right">
+            <div class="live-search-wrap">
+              <input type="text" id="user-search" placeholder="Search by name or email..." class="search-input" autocomplete="off" />
+            </div>
+          </div>
+        </div>
+
+        <% if (users && users.length > 0) { %>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Orders</th>
+                  <th>Joined</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% users.forEach(user => {
+                  const orderStats = ordersByUser && ordersByUser[user.email] ? ordersByUser[user.email] : { count: 0, total: 0 };
+                  const orderCount = orderStats.count;
+                  const totalSpent = orderStats.total;
+                %>
+                  <tr>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:var(--space-3);">
+                        <div class="user-avatar" style="width:40px;height:40px;border-radius:50%;background:var(--color-accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;">
+                          <%= user.name ? user.name.charAt(0).toUpperCase() : '?' %>
+                        </div>
+                        <strong><%= user.name || '—' %></strong>
+                      </div>
+                    </td>
+                    <td style="font-family:var(--font-mono);font-size:0.875rem;"><%= user.email %></td>
+                    <td style="color:var(--color-gray-500);">
+                      <%= user.phone ? user.phone : '—' %>
+                    </td>
+                    <td>
+                      <span class="status-badge status-delivered"><%= orderCount %></span>
+                      <% if (totalSpent > 0) { %><span style="display:block;font-size:0.75rem;color:var(--color-gray-500);margin-top:4px;">₨<%= totalSpent.toLocaleString() %></span><% } %>
+                    </td>
+                    <td style="color:var(--color-gray-500);font-size:0.8125rem;">
+                      <%= user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' %>
+                    </td>
+                    <td>
+                      <a href="/admin/user/<%= user._id %>" class="admin-btn">View</a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="admin-pagination">
+            <div class="pagination-info">
+              Showing page <%= page %> of <%= totalPages || 1 %>
+            </div>
+            <div class="pagination-controls">
+              <button class="pagination-btn" data-page="prev" <%= page <= 1 ? 'disabled' : '' %>>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <% for (let p = 1; p <= (totalPages || 1); p++) { %>
+                <button class="pagination-btn <%= p === page ? 'active' : '' %>" data-page="<%= p %>"><%= p %></button>
+              <% } %>
+              <button class="pagination-btn" data-page="next" <%= page >= (totalPages || 1) ? 'disabled' : '' %>>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="admin-empty">
+            <h3>No customers yet</h3>
+            <p>Customers will appear here once they create accounts or place orders.</p>
+            <a href="/" class="btn btn-primary">View Store</a>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Pagination handlers
+  document.querySelectorAll('.pagination-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const page = btn.dataset.page;
+      if (page === 'prev') {
+        const currentPage = parseInt(document.querySelector('.pagination-info').textContent.match(/page (\d+)/)?.[1] || '1');
+        window.location.href = `/admin/users?page=${Math.max(1, currentPage - 1)}`;
+      } else if (page === 'next') {
+        const currentPage = parseInt(document.querySelector('.pagination-info').textContent.match(/page (\d+)/)?.[1] || '1');
+        window.location.href = `/admin/users?page=${currentPage + 1}`;
+      } else {
+        window.location.href = `/admin/users?page=${page}`;
+      }
+    });
+  });
+
+  // User search (client-side filter for current page)
+  document.getElementById('user-search')?.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    document.querySelectorAll('.admin-table tbody tr').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  });
+</script>
+
+
+
+

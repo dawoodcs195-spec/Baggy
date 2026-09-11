@@ -1,0 +1,98 @@
+<div class="checkout-success" data-reveal>
+  <div class="container">
+    <div class="success-icon-block">
+      <div class="success-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h1>ORDER CONFIRMED</h1>
+      <p class="success-sub">Thank you for choosing BA GGY.</p>
+      <div class="success-order-id">
+        Order <strong>#<%= order ? order.orderId : '—' %></strong>
+      </div>
+    </div>
+
+    <% if (showOrderDetails && order) { %>
+      <div class="success-details">
+        <div class="success-details-card">
+          <h3>ORDER SUMMARY</h3>
+          <table class="order-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Details</th>
+                <th>Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% order.items.forEach(item => { %>
+                <tr>
+                  <td>
+                    <img src="<%= imgUrl(item.image) %>" alt="<%= item.name %>" />
+                    <%= item.name %>
+                  </td>
+                  <td>Size: <%= item.size %> | Qty: <%= item.qty %></td>
+                  <td>₨<%= (item.price * item.qty).toLocaleString() %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <div class="order-total">
+            <span>Total Paid</span>
+            <span>₨<%= order.total.toLocaleString() %></span>
+          </div>
+        </div>
+
+        <div class="success-details-card customer-info">
+          <h3>SHIP TO</h3>
+          <p><%= order.customer.name %><br />
+          <%= order.customer.address %><br />
+          <%= order.customer.email %> • <%= order.customer.phone %></p>
+          <div class="payment-badge">
+            <% const paymentLabels = { cod: 'Cash on Delivery', jazzcash: 'JazzCash', card: 'Credit / Debit Card', easypaisa: 'EasyPaisa' }; %>
+            <%= paymentLabels[order.payment] || order.payment %>
+          </div>
+        </div>
+
+        <div class="success-details-card next-steps">
+          <h3>What's Next?</h3>
+          <ul class="steps-list">
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <strong>Confirmation emailed:</strong> A receipt has been sent to <a href="mailto:<%= order.customer.email %>"><%= order.customer.email %></a>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              <strong>Processing within 24 hours</strong> — you'll get a dispatch confirmation by SMS and email
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              <strong>Track anytime:</strong> use your order ID on the <a href="/track">Track Order</a> page
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+        <a href="/account/orders" class="btn btn-secondary">View My Orders</a>
+        <a href="/track" class="btn btn-ghost">Track This Order</a>
+      </div>
+    <% } else { %>
+      <div class="success-details">
+        <div class="success-details-card">
+          <h3>Your order is confirmed</h3>
+          <p>A confirmation has been sent to your email and SMS. Your order will be processed within 24 hours.</p>
+        </div>
+      </div>
+      <div class="success-actions">
+        <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+        <a href="/track" class="btn btn-secondary">Track an Order</a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+
+

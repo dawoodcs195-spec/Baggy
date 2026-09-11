@@ -1,0 +1,346 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>ORDER #<%= order.orderId %></h1>
+    <p class="page-desc" data-reveal>Manage order details and tracking</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand">
+          <a href="/" class="admin-brand-link">BA GGY</a>
+        </div>
+        <nav class="admin-nav">
+          <a href="/admin">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+          <a href="/admin/orders" class="active">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Orders
+            <% if (typeof totalOrders !== 'undefined' && totalOrders > 0) { %><span class="admin-nav-badge"><%= totalOrders %></span><% } %>
+          </a>
+          <a href="/admin/products">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Products
+            <% if (typeof totalProducts !== 'undefined' && totalProducts > 0) { %><span class="admin-nav-badge"><%= totalProducts %></span><% } %>
+          </a>
+          <a href="/admin/contacts">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+            Messages
+          </a>
+          <a href="/admin/newsletter">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Newsletter
+          </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            View Store
+          </a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <!-- Order Header -->
+        <div class="admin-order-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6);padding:var(--space-5);background:var(--color-gray-100);border-radius:8px;">
+          <div>
+            <h2 style="margin:0 0 8px 0;">Order #<%= order.orderId %></h2>
+            <p class="admin-sub" style="margin:0;">Placed <%= order.createdAt ? new Date(order.createdAt).toLocaleString('en-PK') : '—' %></p>
+          </div>
+          <div style="text-align:right;">
+            <span class="status-badge status-<%= order.status %>" style="font-size:1rem;padding:8px 16px;"><%= order.status %></span>
+            <p class="admin-sub" style="margin:4px 0 0 0;">Total: ₨<%= order.total.toLocaleString() %></p>
+          </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="admin-section-header">
+          <h3>Customer Information</h3>
+        </div>
+        <div class="admin-details-card" style="background:var(--color-white);border:1px solid var(--color-gray-200);border-radius:8px;padding:var(--space-5);margin-bottom:var(--space-6);">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-4);">
+            <div>
+              <span class="admin-label">Customer Name</span>
+              <p style="margin:4px 0 0 0;font-weight:600;"><%= order.customer.name %></p>
+            </div>
+            <div>
+              <span class="admin-label">Email</span>
+              <p style="margin:4px 0 0 0;font-family:var(--font-mono);"><%= order.customer.email %></p>
+            </div>
+            <div>
+              <span class="admin-label">Phone</span>
+              <p style="margin:4px 0 0 0;"><%= order.customer.phone %></p>
+            </div>
+            <div>
+              <span class="admin-label">Payment Method</span>
+              <p style="margin:4px 0 0 0;">
+                <span style="text-transform:capitalize;"><%= order.payment === 'cod' ? 'Cash on Delivery' : order.payment === 'card' ? 'Card' : order.payment %></span>
+              </p>
+            </div>
+          </div>
+          <div style="margin-top:var(--space-4);border-top:1px solid var(--color-gray-200);padding-top:var(--space-4);">
+            <span class="admin-label">Shipping Address</span>
+            <p style="margin:4px 0 0 0;white-space:pre-line;"><%= order.customer.address %></p>
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="admin-section-header">
+          <h3>Order Items</h3>
+        </div>
+        <div class="admin-details-card" style="background:var(--color-white);border:1px solid var(--color-gray-200);border-radius:8px;overflow:hidden;">
+          <div class="admin-table-wrap">
+            <table class="admin-table" style="margin:0;">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Qty</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order.items.forEach(item => { %>
+                  <tr>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:var(--space-3);">
+                        <img src="<%= imgUrl(item.image) %>" alt="" class="admin-img" loading="lazy" decoding="async" style="width:56px;height:56px;object-fit:cover;"  />
+                        <div>
+                          <strong style="font-size:0.9375rem;"><%= item.name %></strong>
+                          <div style="font-size:0.75rem;color:var(--color-gray-500);">Size: <%= item.size %></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style="font-size:0.875rem;">₨<%= item.price.toLocaleString() %></td>
+                    <td><span class="stock-badge" style="background:var(--color-gray-100);color:var(--color-gray-600);"><%= item.qty %></span></td>
+                    <td style="font-weight:700;">₨<%= (item.price * item.qty).toLocaleString() %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Order Totals -->
+        <div class="admin-section-header" style="margin-top:var(--space-6);">
+          <h3>Order Summary</h3>
+        </div>
+        <div class="admin-details-card" style="background:var(--color-white);border:1px solid var(--color-gray-200);border-radius:8px;padding:var(--space-5);margin-bottom:var(--space-6);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);color:var(--color-gray-600);">
+            <span>Subtotal</span>
+            <span>₨<%= order.subtotal.toLocaleString() %></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);color:var(--color-gray-600);">
+            <span>Shipping</span>
+            <span><%= order.shipping > 0 ? '₨' + order.shipping.toLocaleString() : 'Free' %></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);padding-top:var(--space-2);border-top:2px solid var(--color-gray-200);font-weight:700;font-size:1.125rem;">
+            <span>Total</span>
+            <span>₨<%= order.total.toLocaleString() %></span>
+          </div>
+        </div>
+
+        <!-- Tracking Steps -->
+        <div class="admin-section-header" style="margin-top:var(--space-6);">
+          <h3>Order Tracking</h3>
+        </div>
+        <div class="admin-tracking-container" style="background:var(--color-white);border:1px solid var(--color-gray-200);border-radius:8px;padding:var(--space-6);margin-bottom:var(--space-6);">
+          <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;">
+            <% const trackingSteps = [
+              { label: 'Order Placed', key: 'pending' },
+              { label: 'Confirmed', key: 'confirmed' },
+              { label: 'Processing', key: 'processing' },
+              { label: 'Shipped', key: 'shipped' },
+              { label: 'Delivered', key: 'delivered' }
+            ]; %>
+            <% trackingSteps.forEach((step, idx) => { %>
+              <div style="display:flex;flex-direction:column;align-items:center;position:relative;">
+                <div class="<%= idx < order.trackingSteps.findIndex(s => !s.completed) ? 'completed' : order.status === step.key ? 'current' : '' %> status-tick" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:<%= idx < order.trackingSteps.findIndex(s => !s.completed) ? 'var(--color-accent)' : 'var(--color-gray-200)' %>;color:white;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span style="font-size:0.75rem;margin-top:8px;font-weight:600;"><%= step.label %></span>
+              </div>
+              <% if (idx < trackingSteps.length - 1) { %>
+                <div style="width:60px;height:2px;background:<%= idx < order.trackingSteps.findIndex(s => !s.completed) ? 'var(--color-accent)' : 'var(--color-gray-200)' %>"></div>
+              <% } %>
+            <% }) %>
+          </div>
+          <div style="margin-top:var(--space-4);padding:var(--space-4);background:var(--color-gray-50);border-radius:4px;">
+            <p style="margin:0 0 4px 0;font-size:0.875rem;color:var(--color-gray-600);">Status: <strong style="color:var(--color-gray-800);"><%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %></strong></p>
+            <p style="margin:0;font-size:0.75rem;color:var(--color-gray-500);">Tracking information will update automatically as order status changes.</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="admin-actions" style="display:flex;gap:var(--space-4);flex-wrap:wrap;">
+          <button class="btn btn-primary" id="change-status-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
+            Change Status
+          </button>
+          <button class="btn btn-ghost" id="print-order-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Invoice
+          </button>
+          <a class="btn btn-secondary" href="/admin/orders">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Orders
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Status Change Modal -->
+<div class="admin-modal" id="status-modal" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
+  <div class="admin-modal-card">
+    <button class="admin-modal-close" id="status-modal-close" aria-label="Close">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <h3 id="status-modal-title">Update Order Status</h3>
+    <p class="admin-modal-sub">Order #<%= order.orderId %></p>
+    <form id="status-form">
+      <input type="hidden" name="orderId" value="<%= order.orderId %>" />
+      <div class="form-group">
+        <label for="status-select">New Status</label>
+        <select id="status-select" name="status" required>
+          <option value="pending">Pending</option>
+          <option value="confirmed" <%= order.status === 'pending' ? 'selected' : '' %>>Confirmed</option>
+          <option value="processing" <%= order.status === 'confirmed' ? 'selected' : '' %>>Processing</option>
+          <option value="shipped" <%= order.status === 'processing' ? 'selected' : '' %>>Shipped</option>
+          <option value="delivered" <%= order.status === 'shipped' ? 'selected' : '' %>>Delivered</option>
+          <option value="cancelled" <%= order.status === 'pending' || order.status === 'confirmed' ? 'selected' : '' %>>Cancelled</option>
+        </select>
+      </div>
+      <div class="admin-modal-actions">
+        <button type="button" class="admin-btn" id="status-cancel">Cancel</button>
+        <button type="submit" class="admin-btn primary">Update Status</button>
+      </div>
+    </form>
+    <div id="status-error" class="auth-error" style="display:none;margin-top:var(--space-4);"></div>
+  </div>
+</div>
+
+<script>
+  // Show status modal
+  document.getElementById('change-status-btn')?.addEventListener('click', () => {
+    document.getElementById('status-modal').classList.add('open');
+  });
+
+  // Close status modal
+  document.getElementById('status-modal-close')?.addEventListener('click', () => {
+    document.getElementById('status-modal').classList.remove('open');
+  });
+
+  document.getElementById('status-cancel')?.addEventListener('click', () => {
+    document.getElementById('status-modal').classList.remove('open');
+  });
+
+  document.getElementById('status-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('status-modal')) {
+      document.getElementById('status-modal').classList.remove('open');
+    }
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('status-modal')?.classList.contains('open')) {
+      document.getElementById('status-modal').classList.remove('open');
+    }
+  });
+
+  // Handle status change form submission
+  document.getElementById('status-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const orderId = form.elements.orderId.value;
+    const newStatus = form.elements.status.value;
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<svg class="spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"/></svg> Updating...';
+
+    try {
+      const res = await fetch(`/admin/order/${orderId}/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': '<%= csrfToken %>'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        showToast('Order status updated successfully!', 'success');
+        setTimeout(() => {
+          document.getElementById('status-modal').classList.remove('open');
+          window.location.reload();
+        }, 1000);
+      } else {
+        document.getElementById('status-error').textContent = data.message || 'Failed to update status';
+        document.getElementById('status-error').style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Update Status';
+      }
+    } catch (err) {
+      document.getElementById('status-error').textContent = 'Network error: ' + err.message;
+      document.getElementById('status-error').style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Update Status';
+    }
+  });
+
+  // Print invoice
+  document.getElementById('print-order-btn')?.addEventListener('click', () => {
+    window.print();
+  });
+
+  // Toast notification function
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position:fixed;bottom:20px;right:20px;padding:16px 24px;
+      border-radius:8px;background:${type === 'error' ? '#dc2626' : '#16a34a'};
+      color:white;font-weight:500;box-shadow:0 10px 25px -5px rgba(0,0,0,0.2);
+      z-index:10000;animation:slideIn 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    // Add slideIn keyframe
+    if (!document.querySelector('style[data-toast-keyframes]')) {
+      const style = document.createElement('style');
+      style.dataset.toastKeyframes = true;
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+</script>
+
+
+
+

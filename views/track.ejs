@@ -1,0 +1,75 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>TRACK ORDER</h1>
+    <p class="page-desc" data-reveal>Real-time updates on your package</p>
+  </div>
+</header>
+
+<section class="section track-section">
+  <div class="container">
+    <form class="track-form" id="track-form" data-reveal>
+      <h3>Enter your order ID</h3>
+      <p class="form-help">Your order ID was emailed to you and starts with "BG-"</p>
+      <div class="track-input-row">
+        <input type="text" id="track-id" placeholder="BG-XXXXXXXX" required value="<%= typeof orderId !== 'undefined' && orderId ? orderId : '' %>" />
+        <button type="submit" class="btn btn-primary">Track</button>
+      </div>
+    </form>
+
+    <div class="track-result hidden" id="track-result">
+      <div class="track-header">
+        <div>
+          <h3>Order <span id="track-order-id"></span></h3>
+          <p>Placed on <span id="track-date"></span></p>
+        </div>
+        <span class="track-status" id="track-status">Confirmed</span>
+      </div>
+
+      <div class="track-progress">
+        <div class="track-progress-bar" id="track-bar"></div>
+      </div>
+
+      <ol class="track-steps" id="track-steps">
+        <li class="track-step"><span class="step-dot"></span><strong>Order Placed</strong><small></small></li>
+        <li class="track-step"><span class="step-dot"></span><strong>Confirmed</strong><small></small></li>
+        <li class="track-step"><span class="step-dot"></span><strong>Processing</strong><small></small></li>
+        <li class="track-step"><span class="step-dot"></span><strong>Shipped</strong><small></small></li>
+        <li class="track-step"><span class="step-dot"></span><strong>Delivered</strong><small></small></li>
+      </ol>
+
+      <div class="track-items" id="track-items"></div>
+
+      <div class="track-customer">
+        <h4>Shipping to:</h4>
+        <p id="track-customer-info"></p>
+      </div>
+    </div>
+
+    <div class="track-empty hidden" id="track-empty">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <h3>Order not found</h3>
+      <p>Please check your order ID and try again, or contact our support team.</p>
+      <a href="/contact" class="btn btn-primary">Contact Support</a>
+    </div>
+  </div>
+
+<script>
+  // Prefill the order ID from /track?order_id=BG-XXXX (linked from My Orders)
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('order_id') || params.get('orderId');
+    if (!id) return;
+    const input = document.getElementById('track-id');
+    if (!input) return;
+    input.value = id;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    // Auto-run the lookup once the page has loaded
+    window.addEventListener('load', () => {
+      const form = document.getElementById('track-form');
+      if (form) form.requestSubmit();
+    });
+  })();
+</script>
+</section>
+
+

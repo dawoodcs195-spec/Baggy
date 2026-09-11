@@ -1,0 +1,75 @@
+<div class="cart-page" data-reveal>
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title page-title-animated" data-split-text>YOUR CART</h1>
+    </header>
+
+    <% if (cart && cart.length > 0) { %>
+      <div class="cart-layout">
+        <div class="cart-items">
+          <% cart.forEach((item, i) => { %>
+            <div class="cart-item" data-cart-item>
+              <img src="<%= imgUrl(item.image) %>" alt="<%= item.name %>" class="cart-item-img" />
+              <div class="cart-item-info">
+                <h4><%= item.name %></h4>
+                <p>Size: <strong><%= item.size %></strong></p>
+                <div class="cart-qty">
+                  <button class="qty-minus" data-id="<%= item.productId %>" data-size="<%= item.size %>">−</button>
+                  <span class="qty-value"><%= item.qty %></span>
+                  <button class="qty-plus" data-id="<%= item.productId %>" data-size="<%= item.size %>">+</button>
+                </div>
+              </div>
+              <div class="cart-item-price">₨<%= (item.price * item.qty).toLocaleString() %></div>
+              <button class="cart-remove" data-id="<%= item.productId %>" data-size="<%= item.size %>" aria-label="Remove item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          <% }) %>
+          <div class="cart-actions">
+            <button class="btn btn-secondary" id="clear-cart">CLEAR CART</button>
+          </div>
+        </div>
+
+        <aside class="cart-sidebar">
+          <div class="cart-summary">
+            <h3>ORDER SUMMARY</h3>
+            <div class="summary-row">
+              <span>Subtotal (<%= cart.reduce((a, i) => a + i.qty, 0) %> items)</span>
+              <span>₨<%= cart.reduce((a, i) => a + i.price * i.qty, 0).toLocaleString() %></span>
+            </div>
+            <% const cartSubtotal = cart.reduce((a, i) => a + i.price * i.qty, 0); %>
+            <% const cartShipping = cartSubtotal >= 3499 ? 0 : 299; %>
+            <div class="summary-row">
+              <span>Shipping</span>
+              <span class="<%= cartShipping === 0 ? 'free-shipping' : '' %>"><%= cartShipping === 0 ? 'FREE' : '₨' + cartShipping.toLocaleString() %></span>
+            </div>
+            <div class="summary-row total">
+              <span>Total</span>
+              <span>₨<%= (cartSubtotal + cartShipping).toLocaleString() %></span>
+            </div>
+            <a href="/checkout" class="btn btn-primary">PROCEED TO CHECKOUT</a>
+            <p class="secure-note">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline;vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Your payment information is encrypted and secure
+            </p>
+          </div>
+        </aside>
+      </div>
+    <% } else { %>
+      <div class="empty-cart" data-reveal>
+        <div class="empty-cart-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+        </div>
+        <h2>Your cart is empty</h2>
+        <p>Looks like you haven't added anything yet.</p>
+        <a href="/shop" class="btn btn-primary">SHOP NOW</a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+

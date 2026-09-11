@@ -1,0 +1,152 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>CHECKOUT</h1>
+    <p class="page-desc" data-reveal>Almost there — complete your order</p>
+  </div>
+</header>
+
+<section class="section checkout-section">
+  <div class="container">
+    <% if (!cart || cart.length === 0) { %>
+      <div class="checkout-empty" data-reveal>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <h2>Your cart is empty</h2>
+        <p>Add something you love before checking out.</p>
+        <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+      </div>
+    <% } else { %>
+      <form id="checkout-form" class="checkout-layout" autocomplete="on">
+        <!-- Left: shipping details -->
+        <div class="checkout-form" data-reveal>
+          <h3>Shipping Details</h3>
+          <div class="form-group">
+            <label for="checkout-name">Full Name *</label>
+            <input type="text" id="checkout-name" name="full-name" required placeholder="e.g., Ahmed Khan" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="checkout-email">Email *</label>
+              <input type="email" id="checkout-email" name="email" required placeholder="you@example.com" />
+            </div>
+            <div class="form-group">
+              <label for="checkout-phone">Phone *</label>
+              <input type="tel" id="checkout-phone" name="phone" required placeholder="+92 300 1234567" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="checkout-address">Delivery Address *</label>
+            <textarea id="checkout-address" name="address" rows="3" required placeholder="House #, Street, Area, City"></textarea>
+          </div>
+
+          <h3 style="margin-top:var(--space-6);">Payment Method</h3>
+          <div class="payment-options">
+            <label class="payment-option">
+              <input type="radio" name="payment-method" value="cod" checked />
+              <span>Cash on Delivery</span>
+              <small>Pay when it arrives</small>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="payment-method" value="jazzcash" />
+              <span>JazzCash</span>
+              <small>Mobile wallet</small>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="payment-method" value="easypaisa" />
+              <span>Easypaisa</span>
+              <small>Mobile wallet</small>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="payment-method" value="bank" />
+              <span>Bank Transfer</span>
+              <small>Direct deposit</small>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="payment-method" value="card" />
+              <span>Card</span>
+              <small>Credit / debit</small>
+            </label>
+          </div>
+
+          <div class="order-notes" style="margin-top:var(--space-4);">
+            <label for="checkout-coupon">Promo Code</label>
+            <div style="display:flex;gap:var(--space-3);align-items:center;">
+              <input type="text" id="checkout-coupon" name="checkout-coupon" placeholder="Enter coupon code" style="flex:1;" />
+              <button type="button" class="btn btn-ghost" id="apply-coupon-btn">Apply</button>
+            </div>
+            <small id="coupon-feedback" style="font-size:0.75rem;margin-top:4px;color:var(--color-accent);display:none;"></small>
+          </div>
+        </div>
+
+        <!-- Right: order review -->
+        <div class="checkout-review" data-reveal style="transition-delay:0.1s;">
+          <h3>Order Summary</h3>
+          <div class="order-list">
+            <% cart.forEach(item => { %>
+              <div class="checkout-item">
+                <img src="<%= imgUrl(item.image) %>" alt="<%= item.name %>" class="checkout-item-img" loading="lazy" />
+                <div class="checkout-item-details">
+                  <h4><%= item.name %></h4>
+                  <p>Size: <%= item.size %> · Qty: <%= item.qty %></p>
+                </div>
+                <div style="margin-left:auto;font-weight:700;font-size:0.875rem;">₨<%= (item.price * item.qty).toLocaleString() %></div>
+              </div>
+            <% }) %>
+          </div>
+          <div class="checkout-summary">
+            <div style="display:flex;justify-content:space-between;font-size:0.9375rem;margin-bottom:var(--space-2);">
+              <span>Subtotal</span>
+              <span>₨<%= cart.reduce((a, i) => a + i.price * i.qty, 0).toLocaleString() %></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.9375rem;margin-bottom:var(--space-2);">
+              <span>Shipping</span>
+              <span><%= cart.reduce((a, i) => a + i.price * i.qty, 0) >= 3499 ? 'FREE' : '₨299' %></span>
+            </div>
+            <div id="coupon-discount-display" style="display:none;justify-content:space-between;font-size:0.9375rem;margin-bottom:var(--space-2);color:var(--color-accent);">
+              <span>Discount</span>
+              <span>−₨<span id="discount-amount">0</span></span>
+            </div>
+            <div class="total" style="display:flex;justify-content:space-between;">
+              <span>Total</span>
+              <span>₨<%= (cart.reduce((a, i) => a + i.price * i.qty, 0) + (cart.reduce((a, i) => a + i.price * i.qty, 0) >= 3499 ? 0 : 299)).toLocaleString() %></span>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100" id="place-order-btn" style="margin-top:var(--space-6);">PLACE ORDER</button>
+        </div>
+      </form>
+
+      <script>
+          function applyCoupon(btn) {
+            const code = document.getElementById('checkout-coupon').value.trim().toUpperCase();
+            if (!code) return;
+            const subtotal = <%= cart ? cart.reduce((a, i) => a + i.price * i.qty, 0) : 0 %>;
+            btn.disabled = true;
+            fetch('/api/coupon/validate', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code, subtotal })
+            }).then(r => r.json()).then(data => {
+              const feedback = document.getElementById('coupon-feedback');
+              const display = document.getElementById('coupon-discount-display');
+              if (data.ok) {
+                feedback.textContent = `Applied ${data.type === 'percent' ? data.value + '%' : '₨' + data.value} discount`;
+                feedback.style.color = 'var(--color-accent)';
+                feedback.style.display = 'block';
+                document.getElementById('discount-amount').textContent = data.discount.toLocaleString();
+                display.style.display = 'block';
+                // Update UI total display
+                const totalEl = document.querySelector('.checkout-summary .total span:last-child');
+                const discountedSubtotal = subtotal - data.discount;
+                const shipping = discountedSubtotal >= 3499 ? 0 : 299;
+                const final = discountedSubtotal + shipping;
+                totalEl.textContent = '₨' + final.toLocaleString();
+              } else {
+                feedback.textContent = data.message;
+                feedback.style.color = '#dc2626';
+                feedback.style.display = 'block';
+                display.style.display = 'none';
+              }
+            }).finally(() => { btn.disabled = false; });
+          }
+        </script>
+    <% } %>
+  </div>
+</section>

@@ -1,0 +1,259 @@
+<section class="hero-section hero-layered">
+  <!-- Giant background word (sits behind the model) -->
+  <div class="hero-giant" aria-hidden="true"><span data-split-text>BA GGY</span></div>
+
+  <!-- Transparent model cutout, overlapping the type -->
+  <div class="hero-cutout" aria-hidden="true">
+    <img src="/public/images/hero.png" alt="" loading="eager" decoding="async" />
+  </div>
+
+  <!-- Foreground content layer. The CTA row lives OUTSIDE the z-indexed
+       wrapper so the blend-mode text link can see the model image below
+       (a z-index ancestor would create a stacking context and break it). -->
+  <div class="hero-layered-inner">
+    <div class="hero-topline" data-reveal>
+      <p class="hero-eyebrow">Fashion<br />that moves<br /><span class="hero-eyebrow-underline">with you.</span></p>
+    </div>
+    <div class="hero-corner-note" data-reveal>
+      <p>New<br />Collection<br /><%= year %></p>
+    </div>
+  </div>
+  <div class="hero-ctas">
+    <a href="/shop" class="btn btn-primary" data-btn data-reveal>
+      Shop Now
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:8px">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </a>
+    <a href="/jeans" class="btn-hero-link" data-btn data-reveal style="transition-delay: 0.08s">Explore New In</a>
+  </div>
+</section>
+
+<!-- Brand marquee strip -->
+<div class="brand-marquee" aria-hidden="true">
+  <div class="brand-marquee-track">
+    <% [0,1].forEach(function(){ %>
+      <div class="brand-marquee-seq">
+        <span class="brand-marquee-item">BA GGY</span>
+        <span class="brand-marquee-item">Fashion That Moves With You</span>
+        <span class="brand-marquee-item">Baggy Jeans</span>
+        <span class="brand-marquee-item">Oversized Tees</span>
+        <span class="brand-marquee-item">New Collection <%= year %></span>
+      </div>
+    <% }); %>
+  </div>
+</div>
+
+<!-- Categories -->
+<section class="section categories" id="essentials">
+  <div class="container">
+    <div class="section-header" data-reveal>
+      <div>
+        <h2>The Essentials</h2>
+        <p>Denim. Tees. Accessories. Uppers. Unapologetically you.</p>
+      </div>
+    </div>
+  </div>
+  <div class="flip-stack" data-flip-stack>
+    <div class="flip-stack-track" data-flip-track>
+      <div class="flip-stack-stage">
+
+        <div class="flip-stack-cards">
+        <article class="flip-card" style="--flip-bg:#0a0a0a;--flip-fg:#f5f1e8;">
+          <a class="flip-card-link" href="/jeans" aria-label="Shop Baggy Jeans">
+            <div class="flip-card-media">
+              <img src="/public/images/d1.jpg" alt="Baggy Jeans Collection" loading="lazy" decoding="async" />
+            </div>
+            <div class="flip-card-body">
+              <span class="flip-card-num">01</span>
+              <div class="flip-card-text">
+                <p class="flip-card-eyebrow">The Essentials</p>
+                <h3 class="flip-card-title">Baggy Jeans</h3>
+                <p class="flip-card-desc">Full-length denim with an unapologetic silhouette. Built to move, made to last.</p>
+                <span class="flip-card-cta">Shop Now <span class="flip-card-arrow">→</span></span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <article class="flip-card" style="--flip-bg:#b8002f;--flip-fg:#faf7f0;">
+          <a class="flip-card-link" href="/shirts" aria-label="Shop Oversized Tees">
+            <div class="flip-card-media">
+              <img src="/public/images/e2.png" alt="Oversized Tees Collection" loading="lazy" decoding="async" />
+            </div>
+            <div class="flip-card-body">
+              <span class="flip-card-num">02</span>
+              <div class="flip-card-text">
+                <p class="flip-card-eyebrow">The Essentials</p>
+                <h3 class="flip-card-title">Oversized Tees</h3>
+                <p class="flip-card-desc">Heavyweight cotton, dropped shoulders, boxy fit. The tee that replaces every tee.</p>
+                <span class="flip-card-cta">Shop Now <span class="flip-card-arrow">→</span></span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <article class="flip-card" style="--flip-bg:#3f3f46;--flip-fg:#f5f1e8;">
+          <a class="flip-card-link" href="/shop/accessories" aria-label="Shop Accessories">
+            <div class="flip-card-media">
+              <img src="/public/images/accessories.jpg" alt="Accessories Collection" loading="lazy" decoding="async" />
+            </div>
+            <div class="flip-card-body">
+              <span class="flip-card-num">03</span>
+              <div class="flip-card-text">
+                <p class="flip-card-eyebrow">The Essentials</p>
+                <h3 class="flip-card-title">Accessories</h3>
+                <p class="flip-card-desc">Caps, socks, and the details that finish the fit. Small pieces, loud presence.</p>
+                <span class="flip-card-cta">Shop Now <span class="flip-card-arrow">→</span></span>
+              </div>
+            </div>
+          </a>
+        </article>
+
+        <article class="flip-card" style="--flip-bg:#f5f1e8;--flip-fg:#0a0a0a;">
+          <a class="flip-card-link" href="/shop/uppers" aria-label="Shop Uppers">
+            <div class="flip-card-media">
+              <img src="/public/images/upper.jpg" alt="Uppers Collection" loading="lazy" decoding="async" />
+            </div>
+            <div class="flip-card-body">
+              <span class="flip-card-num">04</span>
+              <div class="flip-card-text">
+                <p class="flip-card-eyebrow">The Essentials</p>
+                <h3 class="flip-card-title">Uppers</h3>
+                <p class="flip-card-desc">Layering pieces and light tops. The everything-else of the BAGGY uniform.</p>
+                <span class="flip-card-cta">Shop Now <span class="flip-card-arrow">→</span></span>
+              </div>
+            </div>
+          </a>
+        </article>
+        </div>
+
+        <div class="flip-stack-hud" aria-hidden="true">
+          <span class="flip-stack-counter"><span class="flip-counter-current">01</span> / 04</span>
+          <span class="flip-stack-progress"><span class="flip-stack-progress-fill"></span></span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Trust Badges -->
+<section class="trust-badges">
+  <div class="container">
+    <div class="badge-row" data-reveal>
+      <div class="trust-badge">
+        <span class="trust-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+            <path d="M15 18H9"/>
+            <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
+            <circle cx="17" cy="18" r="2"/>
+            <circle cx="7" cy="18" r="2"/>
+          </svg>
+        </span>
+        <div>
+          <strong>Fast Delivery</strong>
+          <span>Quick &amp; safe delivery</span>
+        </div>
+      </div>
+      <div class="trust-badge">
+        <span class="trust-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+        </span>
+        <div>
+          <strong>Easy Returns</strong>
+          <span>Within 15 days</span>
+        </div>
+      </div>
+      <div class="trust-badge">
+        <span class="trust-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </span>
+        <div>
+          <strong>Quality Assured</strong>
+          <span>Best fashion, best quality</span>
+        </div>
+      </div>
+      <div class="trust-badge">
+        <span class="trust-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </span>
+        <div>
+          <strong>Secure Payment</strong>
+          <span>100% secure checkout</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Products -->
+<section class="section featured-products">
+  <div class="container">
+    <div class="section-header" data-reveal>
+      <div>
+        <h2>Best of BAGGY</h2>
+        <p>Handpicked pieces from this season.</p>
+      </div>
+      <a href="/shop" class="view-all">View All →</a>
+    </div>
+    <div class="product-grid">
+      <% (featuredProducts || []).slice(0, 6).forEach((p, i) => { %>
+        <div class="product-card" data-reveal style="transition-delay: <%= i * 60 %>ms" tabindex="0" role="link" aria-label="<%= p.name %>">
+          <div class="product-image-wrapper">
+            <img src="<%= imgUrl(p.images && p.images[0]) %>" alt="<%= p.name %>" class="product-image" loading="lazy" />
+            <img src="<%= imgUrl(p.images && p.images[1]) %>" alt="<%= p.name %> alternate view" class="product-image hover" loading="lazy" />
+            <% if (p.newArrival) { %><span class="product-badge new">New</span><% } %>
+            <% if (p.originalPrice > p.price) { %><span class="product-badge sale">Sale</span><% } %>
+            <div class="product-actions">
+              <button class="action-btn wishlist-toggle" data-id="<%= p.id %>" aria-label="Add to wishlist">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="product-overlay">
+              <button class="quick-add" data-id="<%= p.id %>">Quick Add</button>
+            </div>
+          </div>
+          <div class="product-info">
+            <h3><%= p.name %></h3>
+            <p class="product-category"><%= p.category === 'jeans' ? 'Baggy Jeans' : 'Oversized Tee' %></p>
+            <div class="product-rating">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span class="rating-count">(<%= p.reviewCount %>)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₨<%= p.price.toLocaleString() %></span>
+              <% if (p.originalPrice) { %>
+                <span class="price-original">₨<%= p.originalPrice.toLocaleString() %></span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<!-- Banner CTA -->
+<section class="banner-section" aria-label="New Season Collection">
+  <div class="banner-container" data-reveal>
+    <div class="banner-content">
+      <h2>New Season · New Vibes</h2>
+      <p>Discover everything new and now.</p>
+      <a href="/shop" class="btn btn-primary">Explore Collection</a>
+    </div>
+  </div>
+</section>
+
+

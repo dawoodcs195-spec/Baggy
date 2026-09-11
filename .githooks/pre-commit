@@ -1,0 +1,25 @@
+#!/bin/sh
+# Pre-commit: block commits that break template rendering or route variable safety.
+# Fast failure — first failing audit aborts the commit.
+echo "▸ render audit (templates vs passed variables)…"
+npm run --silent audit:renders || {
+  echo "✗ COMMIT BLOCKED: a template references variables its routes never pass."
+  echo "  Fix server.js renderPage calls or the template, then commit again."
+  exit 1
+}
+
+echo "▸ route-scope audit (undeclared / catch-only reads in render args)…"
+npm run --silent audit:routes || {
+  echo "✗ COMMIT BLOCKED: a renderPage call reads variables that are not safely"
+  echo "  declared in its route (the class of bug that crashed /admin)."
+  exit 1
+}
+
+echo "▸ template smoke test (render every template with route-accurate data)…"
+npm run --silent smoke || {
+  echo "✗ COMMIT BLOCKED: one or more templates fail to render."
+  echo "  Run 'npm run smoke' to see the failing templates and errors."
+  exit 1
+}
+
+echo "✓ All render audits passed."

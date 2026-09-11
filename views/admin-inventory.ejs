@@ -1,0 +1,164 @@
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title page-title-animated" data-split-text>INVENTORY</h1>
+    <p class="page-desc" data-reveal>Monitor stock levels and restock products</p>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container">
+    <div class="admin-layout" style="padding-top:0;">
+      <aside class="admin-sidebar" data-reveal>
+        <div class="admin-brand"><a href="/" class="admin-brand-link">BA GGY</a></div>
+        <nav class="admin-nav">
+          <a href="/admin"><span aria-hidden="true">▦</span> Dashboard</a>
+          <a href="/admin/orders"><span aria-hidden="true">▢</span> Orders</a>
+          <a href="/admin/products"><span aria-hidden="true">◇</span> Products</a>
+          <a href="/admin/inventory" class="active"><span aria-hidden="true">▤</span> Inventory</a>
+          <a href="/admin/contacts"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Messages
+          </a>
+          <a href="/admin/newsletter"><span aria-hidden="true">✉</span> Newsletter</a>
+        </nav>
+        <div class="admin-sidebar-footer">
+          <a href="/" class="admin-view-store" target="_blank" rel="noopener">View Store</a>
+          <form action="/api/auth/logout" method="POST" style="margin-top:var(--space-4);">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button type="submit" class="admin-logout-btn">Sign Out</button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="admin-content" data-reveal style="transition-delay: 0.1s">
+        <div class="admin-bar">
+          <div class="admin-bar-left">
+            <h2>Stock Overview</h2>
+            <p class="admin-sub" style="margin-bottom:0;"><%= totalProducts %> product(s) in catalog</p>
+          </div>
+          <div class="admin-bar-right">
+            <span class="status-badge <%= lowStockProducts.length ? 'status-pending' : 'status-delivered' %>">
+              <%= lowStockProducts.length %> low-stock alert<%= lowStockProducts.length === 1 ? '' : 's' %>
+            </span>
+          </div>
+        </div>
+
+        <% if (products && products.length > 0) { %>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Current Stock</th>
+                  <th>Alert At</th>
+                  <th>Last Restocked</th>
+                  <th>Adjustment</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% products.forEach(product => { const threshold = product.lowStockThreshold ?? 10; const isLow = product.stock <= threshold; %>
+                  <tr>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:var(--space-3);">
+                        <img src="<%= imgUrl(product.images && product.images[0]) %>" alt="" class="admin-img" loading="lazy" decoding="async"  style="width:48px;height:48px;object-fit:cover;border-radius:2px;" />
+                        <div>
+                          <strong style="font-size:0.9375rem;"><%= product.name %></strong>
+                          <span style="font-size:0.75rem;color:var(--color-gray-400);display:block;"><%= product.category %> · <%= product.subcategory %></span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="stock-badge <%= product.stock > threshold ? 'in-stock' : product.stock > 0 ? 'low-stock' : 'out-of-stock' %>"><%= product.stock %></span>
+                      <% if (isLow) { %><span style="display:block;font-size:0.75rem;color:var(--color-accent);margin-top:4px;">Needs attention</span><% } %>
+                    </td>
+                    <td>
+                      <input class="search-input inventory-threshold" type="number" min="0" max="100000" value="<%= threshold %>" data-product-id="<%= product.id %>" aria-label="Low stock threshold for <%= product.name %>" style="width:86px;height:36px;" />
+                    </td>
+                    <td style="color:var(--color-gray-500);font-size:0.8125rem;">
+                      <%= product.lastRestocked ? new Date(product.lastRestocked).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' %>
+                    </td>
+                    <td>
+                      <form class="inventory-adjust-form" data-product-id="<%= product.id %>" style="display:flex;gap:6px;align-items:center;">
+                        <label class="sr-only" for="adjust-<%= product.id %>">Stock adjustment for <%= product.name %></label>
+                        <input id="adjust-<%= product.id %>" name="qty" type="number" step="1" required placeholder="+/- qty" class="search-input" style="width:92px;height:36px;" />
+                        <button type="submit" class="admin-btn">Save</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="admin-empty">
+            <h3>No products found</h3>
+            <p>Add products before managing inventory.</p>
+            <a href="/admin/products" class="btn btn-primary">Manage Products</a>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function inventoryToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `position:fixed;bottom:20px;right:20px;padding:14px 20px;border-radius:8px;background:${type === 'error' ? '#dc2626' : '#16a34a'};color:#fff;font-weight:500;z-index:10000;`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  document.querySelectorAll('.inventory-adjust-form').forEach(form => {
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const productId = form.dataset.productId;
+      const qty = Number(new FormData(form).get('qty'));
+      const thresholdInput = document.querySelector(`.inventory-threshold[data-product-id="${CSS.escape(productId)}"]`);
+      const button = form.querySelector('button[type="submit"]');
+      if (!Number.isInteger(qty) || qty === 0) {
+        inventoryToast('Enter a non-zero whole-number adjustment.', 'error');
+        return;
+      }
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/admin/product/${encodeURIComponent(productId)}/stock`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ qty, lowStockThreshold: thresholdInput?.value })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.message || 'Failed to update stock');
+        inventoryToast('Inventory updated.');
+        setTimeout(() => window.location.reload(), 500);
+      } catch (error) {
+        inventoryToast(error.message, 'error');
+        button.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.inventory-threshold').forEach(input => {
+    input.addEventListener('change', async () => {
+      const productId = input.dataset.productId;
+      try {
+        const response = await fetch(`/api/admin/product/${encodeURIComponent(productId)}/stock`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ qty: 0, lowStockThreshold: input.value })
+        });
+        // A threshold-only update uses a zero adjustment; the API accepts it internally.
+        if (!response.ok) {
+          const data = await response.json();
+          inventoryToast(data.message || 'Failed to save threshold', 'error');
+        }
+      } catch {
+        inventoryToast('Network error while saving threshold', 'error');
+      }
+    });
+  });
+</script>
+
+
+
+
