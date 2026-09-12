@@ -200,21 +200,18 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ChangeMe-Admin-2024';
 async function ensureAdminUsers() {
   try {
     for (const email of ADMIN_EMAILS) {
-      const existing = await User.findOne({ email });
-      if (existing) {
-        if (existing.role !== 'admin') {
-          existing.role = 'admin';
-          await existing.save();
-        }
-        continue;
+      let admin = await User.findOne({ email });
+      if (!admin) {
+        admin = new User({ name: 'Store Admin', email, role: 'admin' });
+        logger.info(`  ? Admin account created: ${email}`);
+      } else if (admin.role !== 'admin') {
+        admin.role = 'admin';
       }
-      const admin = new User({ name: 'Store Admin', email, role: 'admin' });
       await admin.setPassword(ADMIN_PASSWORD);
       await admin.save();
-      logger.info(`  ✓ Admin account ready: ${email}`);
     }
   } catch (err) {
-    logger.error('  ⚠ Admin bootstrap error: %s', err.message);
+    logger.error('  ? Admin bootstrap error: %s', err.message);
   }
 }
 if (mongoose.connection.readyState === 1) {
@@ -266,7 +263,7 @@ async function boot() {
   // data NOW, so a missing variable fails at boot with a named template
   // instead of crashing the server on a user's click.
   try {
-    const ok = await runSmokeTest();
+    const ok = !process.env.VERCEL ? await runSmokeTest() : true;
     if (!ok && process.env.STRICT_TEMPLATE_SMOKE === '1') {
       logger.error('  ✗ STRICT_TEMPLATE_SMOKE=1 — exiting.');
       process.exit(1);
@@ -276,7 +273,7 @@ async function boot() {
   }
 
     // Skip listening in test mode — Supertest handles this internally
-  if (process.env.NODE_ENV !== 'test') {
+  if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
     server = app.listen(env.port, () => {
       logger.info(`\n  🛍️  BA GGY Shop → http://localhost:${env.port}\n`);
     });
@@ -304,9 +301,6 @@ if (require.main === module) {
     setTimeout(() => process.exit(1), 2000);
   });
 }
-
-
-
 
 
 

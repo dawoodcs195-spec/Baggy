@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node seeds/productSeed.js",
-    "seed:coupons": "node seeds/couponSeed.js",
+    "seed:coupons": "node seeds/couponSeed.js", "seed:atlas": "node seeds/seed-atlas.js",
     "audit:renders": "node scripts/audit-renders.js",
     "audit:routes": "node scripts/audit-route-scopes.js",
     "audit": "node scripts/audit-security.js",

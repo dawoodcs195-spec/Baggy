@@ -84,6 +84,35 @@ abc/
 
 GitHub Actions runs lint â†’ test â†’ audit on every push to `main`.
 
+## Deploy on Vercel
+
+1. **Create a MongoDB Atlas cluster** (free M0 tier) and allow access from anywhere:
+   - Atlas ? *Network Access* ? *Add IP Address* ? `0.0.0.0/0`
+   - *Database Access* ? create a user with read/write
+2. **Seed the database once** from your machine:
+   ```bash
+   npm run seed          # products (uses MONGO_URI from .env)
+   npm run seed:coupons  # coupons
+   ```
+3. **Push this repo to GitHub** and import it in Vercel (or `vercel --prod`).
+4. **Add environment variables** in Vercel ? Project ? Settings ? Environment Variables:
+
+   | Variable | Value |
+   |----------|-------|
+   | `MONGO_URI` | your `mongodb+srv://...` Atlas string |
+   | `SESSION_SECRET` | random 32+ char string |
+   | `ADMIN_EMAILS` | comma-separated admin emails |
+   | `ADMIN_PASSWORD` | strong password (10+) |
+   | `APP_URL` | `https://your-app.vercel.app` |
+   | `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY` | optional — card payments |
+   | `STRIPE_WEBHOOK_SECRET` | optional — payment confirmation webhook |
+   | `RESEND_API_KEY` | optional — transactional email |
+   | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | optional — image uploads |
+
+5. **Deploy.** The `api/index.js` serverless adapter boots the Express app once per warm instance and routes all traffic through it. Static assets under `/public` are served by Vercel.
+
+> **Note:** `NODE_ENV=production` and `VERCEL=1` are set by Vercel. The app skips `app.listen()` and the template smoke test in that mode.
+
 ## License
 
 ISC

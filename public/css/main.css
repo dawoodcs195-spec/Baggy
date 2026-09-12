@@ -423,6 +423,44 @@ textarea:focus-visible,
   100% { transform: scale(1); }
 }
 
+/* --- Product reviews --------------------------------------- */
+.reviews-layout { display: grid; grid-template-columns: 1fr 340px; gap: var(--space-10); align-items: start; }
+.reviews-main { min-width: 0; }
+.reviews-list { display: flex; flex-direction: column; gap: var(--space-5); margin-top: var(--space-6); }
+.review-card { background: var(--color-white); border: 1px solid var(--color-gray-200); padding: var(--space-6); }
+[data-theme="dark"] .review-card { background: var(--color-gray-50); }
+.review-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); margin-bottom: var(--space-4); }
+.review-author { display: flex; gap: var(--space-3); align-items: center; }
+.review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--color-black); color: var(--color-white); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; flex-shrink: 0; }
+.review-meta { display: flex; flex-direction: column; }
+.review-name { font-weight: 600; font-size: 0.9375rem; }
+.review-date { font-size: 0.75rem; color: var(--color-gray-500); }
+.review-rating { display: flex; gap: 2px; }
+.review-rating .star { width: 14px; height: 14px; fill: none; stroke: var(--color-gray-300); stroke-width: 1.5; }
+.review-rating .star.filled { fill: #d97706; stroke: #d97706; }
+.review-verified { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600; color: #16a34a; margin-bottom: var(--space-3); }
+.review-verified svg { width: 14px; height: 14px; }
+.review-body { font-size: 0.9375rem; line-height: 1.65; color: var(--color-gray-700); }
+.review-flag { font-size: 0.75rem; color: var(--color-accent); font-weight: 600; }
+.reviews-empty { text-align: center; padding: var(--space-12) 0; color: var(--color-gray-500); }
+.reviews-empty svg { width: 48px; height: 48px; margin: 0 auto var(--space-4); opacity: 0.4; }
+.reviews-form-wrap { background: var(--color-white); border: 1px solid var(--color-gray-200); padding: var(--space-8); position: sticky; top: calc(var(--header-h) + var(--space-4)); }
+[data-theme="dark"] .reviews-form-wrap { background: var(--color-gray-50); }
+.reviews-form-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; margin-bottom: var(--space-5); }
+.star-picker { display: flex; gap: var(--space-2); }
+.star-option { background: none; border: none; cursor: pointer; padding: 2px; color: var(--color-gray-300); transition: color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-spring); }
+.star-option svg { width: 28px; height: 28px; fill: currentColor; }
+.star-option.selected { color: #d97706; }
+.star-option:hover { transform: scale(1.15); }
+.review-form-note { display: block; font-size: 0.75rem; color: var(--color-gray-500); margin-top: var(--space-3); }
+.review-form-error { color: var(--color-accent); font-size: 0.875rem; font-weight: 600; margin-top: var(--space-3); }
+.review-form-error:empty { display: none; }
+.reviews-login-prompt { background: var(--color-white); border: 1px solid var(--color-gray-200); padding: var(--space-8); text-align: center; }
+.reviews-login-prompt a { color: var(--color-accent); font-weight: 600; }
+@media (max-width: 900px) {
+  .reviews-layout { grid-template-columns: 1fr; }
+  .reviews-form-wrap { position: static; }
+}
 /* ── Dark mode toggle button ── */
 .theme-toggle { position: relative; }
 .theme-toggle svg { transition: opacity var(--dur-base) ease, transform var(--dur-base) var(--ease-spring); }
@@ -3588,6 +3626,10 @@ textarea:focus-visible,
 }
 
 /* ═══════ REDUCED MOTION ═══════ */
+
+/* -- Admin export buttons -- */
+.admin-export-btns { display: flex; gap: var(--space-2); align-items: center; }
+.admin-export-btns .admin-btn { padding: 8px 14px; font-size: 0.75rem; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

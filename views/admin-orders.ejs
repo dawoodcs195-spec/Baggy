@@ -52,7 +52,7 @@
             <p class="admin-sub" style="margin-bottom:0;"><%= total %> order(s) <%= statusFilter ? '(' + statusFilter + ')' : '' %></p>
           </div>
           <div class="admin-bar-right">
-            <div class="form-group" style="margin-bottom:0;">
+            <div class="admin-export-btns"><a id="export-excel" class="admin-btn" href="/admin/orders/export">Export Excel</a><a id="export-pdf" class="admin-btn" href="/admin/orders/print" target="_blank">Export PDF</a></div><div class="form-group" style="margin-bottom:0;">
               <label for="order-status-filter" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Filter by status</label>
               <select id="order-status-filter" class="search-input" style="height:42px;">
                 <option value="" <%= !statusFilter ? 'selected' : '' %>>All statuses</option>
@@ -305,6 +305,14 @@
   });
 </script>
 
-
-
-
+<script>
+  // Preserve status filter on export links
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var status = params.get("status") || "";
+    var ex = document.getElementById("export-excel");
+    var pdf = document.getElementById("export-pdf");
+    if (ex) ex.href = "/admin/orders/export" + (status ? "?status=" + encodeURIComponent(status) : "");
+    if (pdf) pdf.href = "/admin/orders/print" + (status ? "?status=" + encodeURIComponent(status) : "");
+  })();
+</script>

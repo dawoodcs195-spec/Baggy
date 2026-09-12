@@ -49,12 +49,13 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ─── 1b. Dark mode ───────────────────────────────────────────
-  // Theme persists in localStorage; falls back to system preference.
+  // --- 1b. Dark mode -------------------------------------------
+  // Theme persists in localStorage; DEFAULT IS LIGHT. Dark only when
+  // the user explicitly toggles it (no OS-preference surprises).
   (function initTheme() {
-    const KEY = 'baggy_theme';
+    const KEY = 'baggy_theme_v1';
     const saved = localStorage.getItem(KEY);
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = saved || (systemDark ? 'dark' : 'light');
+    const theme = saved === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
     const toggle = $('#theme-toggle');
     if (toggle) {
@@ -66,12 +67,6 @@
         toggle.setAttribute('aria-label', next === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
       });
     }
-    // Update the header toggle if the system preference changes (no manual override).
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', (e) => {
-      if (!localStorage.getItem(KEY)) {
-        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-      }
-    });
   })();
 
   // ─── 2. Character Splitter ────────────────────────────────────
@@ -627,6 +622,10 @@
       });
     });
 
+
+    const preSelected = $('.size-btn.active');
+    if (preSelected) preSelected.classList.add("selected");
+
     // Qty controls
     const qtyInput = $('#qty-input');
     $('#qty-minus')?.addEventListener('click', () => {
@@ -1022,13 +1021,22 @@
         confirmText: 'Remove',
         icon: 'warning',
         onConfirm: async () => {
-          await fetch('/api/cart/remove', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: id, size })
-          });
-          showToast('Item removed');
-          setTimeout(() => location.reload(), 500);
+          try {
+            const res = await fetch('/api/cart/remove', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productId: id, size })
+            });
+            const data = await res.json();
+            if (data.ok) {
+              showToast('Item removed');
+              setTimeout(() => location.reload(), 400);
+            } else {
+              showToast(data.message || 'Could not remove item', 'error');
+            }
+          } catch (err) {
+            showToast('Network error — try again', 'error');
+          }
         }
       });
     });

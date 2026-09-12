@@ -930,4 +930,91 @@ app.post('/api/admin/newsletter/send', async (req, res) => {
     res.status(500).json({ ok: false, message: 'Failed to send campaign' });
   }
 });
+
+// -- Export orders: Excel (CSV) ------------------------------
+app.get("/admin/orders/export", d.asyncHandler(async (req, res) => {
+  if (!isAdmin(req)) return res.status(403).send("Forbidden");
+  const statusFilter = String(req.query.status || "").trim();
+  const match = statusFilter ? { status: statusFilter } : {};
+  const orders = await Order.find(match).sort({ createdAt: -1 }).lean();
+
+  const esc = (v) => {
+    const s = String(v == null ? "" : v).replace(/"/g, '""');
+    return /[",\n]/.test(s) ? `"${s}"` : s;
+  };
+  const rows = [["Order ID","Date","Customer","Email","Phone","Items","Subtotal","Discount","Shipping","Total","Payment","Status"]];
+  for (const o of orders) {
+    const items = (o.items || []).map((i) => `${i.name}(${i.size})x${i.qty}`).join("; ");
+    rows.push([
+      o.orderId, new Date(o.createdAt).toISOString().slice(0,10),
+      o.customer?.name, o.customer?.email, o.customer?.phone,
+      items, o.subtotal, o.discount || 0, o.shipping, o.total, o.payment, o.status
+    ]);
+  }
+  const csv = rows.map((r) => r.map(esc).join(",")).join("\r\n");
+  const name = `baggy-orders-${new Date().toISOString().slice(0,10)}.csv`;
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${name}"`);
+  res.send("?" + csv); // BOM so Excel reads UTF-8
+}));
+
+// -- Print-friendly orders page (Save as PDF) ----------------
+app.get("/admin/orders/print", d.asyncHandler(async (req, res) => {
+  if (!isAdmin(req)) return res.status(403).render("404", { year: new Date().getFullYear() });
+  const statusFilter = String(req.query.status || "").trim();
+  const match = statusFilter ? { status: statusFilter } : {};
+  const orders = await Order.find(match).sort({ createdAt: -1 }).lean();
+  const total = orders.length;
+  const year = new Date().getFullYear();
+
+  const itemRows = (items) => (items || []).map((i) =>
+    `<tr><td>${(i.name||"").replace(/</g,"&lt;")}</td><td>${i.size||""}</td><td>${i.qty||1}</td><td>?${(i.price||0).toLocaleString("en-PK")}</td></tr>`
+  ).join("");
+
+  const orderCards = orders.map((o) => `
+    <div class="po-order">
+      <div class="po-head">
+        <div><strong>#${o.orderId}</strong> <span class="po-date">${new Date(o.createdAt).toLocaleString("en-PK")}</span></div>
+        <span class="po-status po-${o.status}">${(o.status||"").toUpperCase()}</span>
+      </div>
+      <div class="po-customer">${(o.customer?.name||"").replace(/</g,"&lt;")} · ${(o.customer?.email||"").replace(/</g,"&lt;")} · ${(o.customer?.phone||"").replace(/</g,"&lt;")}</div>
+      <table class="po-table"><thead><tr><th>Item</th><th>Size</th><th>Qty</th><th>Price</th></tr></thead>
+      <tbody>${itemRows(o.items)}</tbody></table>
+      <div class="po-totals">
+        <span>Subtotal: <strong>?${(o.subtotal||0).toLocaleString("en-PK")}</strong></span>
+        <span>Discount: <strong>?${(o.discount||0).toLocaleString("en-PK")}</strong></span>
+        <span>Shipping: <strong>${o.shipping ? "?"+o.shipping.toLocaleString("en-PK") : "Free"}</strong></span>
+        <span>Total: <strong>?${(o.total||0).toLocaleString("en-PK")}</strong></span>
+        <span>Payment: <strong>${(o.payment||"").toUpperCase()}</strong></span>
+      </div>
+    </div>`).join("");
+
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Orders — BA GGY</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0a0a0a;padding:32px;font-size:12px}
+  h1{font-family:Georgia,serif;letter-spacing:0.1em;margin-bottom:4px}
+  .po-meta{color:#666;margin-bottom:24px}
+  .po-order{border:1px solid #ddd;padding:16px;margin-bottom:16px;page-break-inside:avoid;border-radius:4px}
+  .po-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .po-date{color:#666;font-size:11px}
+  .po-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:2px;text-transform:uppercase;background:#eee}
+  .po-delivered{background:#16a34a;color:#fff}.po-shipped{background:#2563eb;color:#fff}.po-cancelled{background:#b8002f;color:#fff}
+  .po-processing{background:#d97706;color:#fff}.po-confirmed{background:#7c3aed;color:#fff}.po-pending{background:#6b7280;color:#fff}
+  .po-customer{color:#666;font-size:11px;margin-bottom:10px}
+  .po-table{width:100%;border-collapse:collapse;margin-bottom:10px}
+  .po-table th,.po-table td{border-bottom:1px solid #eee;padding:4px 8px;text-align:left;font-size:11px}
+  .po-table th{border-bottom:2px solid #0a0a0a;font-weight:600}
+  .po-totals{display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid #eee;padding-top:8px;font-size:11px}
+  .po-totals strong{display:block;font-size:13px}
+  @media print{body{padding:16px}.po-order{break-inside:avoid}}
+</style></head><body>
+<h1>BA GGY</h1>
+<div class="po-meta">${total} order(s)${statusFilter ? " · status: "+statusFilter : ""} · printed ${new Date().toLocaleString("en-PK")}</div>
+${orderCards}
+<script>window.onload=function(){window.print()}</script>
+</body></html>`;
+
+  res.type("html").send(html);
+}));
 };
