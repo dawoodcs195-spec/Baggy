@@ -55,7 +55,7 @@
   <link rel="stylesheet" href="/public/css/admin-enhanced.css?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" />
   <% if (typeof pageCss !== 'undefined' && pageCss) { pageCss.forEach(c => { %><link rel="stylesheet" href="<%= c %>" /><% }) } %>
 </head>
-<body data-csrf="<%= csrfToken %>" data-user-email="<%= user && user.email ? user.email : '' %>" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
+<body data-csrf="<%= csrfToken %>" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <!-- Announcement bar -->

@@ -12,8 +12,6 @@
 
   // ─── 0. CSRF: auto-attach token to every fetch ────────────────
   const CSRF_TOKEN = document.body?.dataset.csrf || '';
-  // Signed-in flag from the server-rendered body (syncs wishlist toggles to the server).
-  const reqUser = document.body?.dataset?.userEmail || '';
   const _origFetch = window.fetch;
   window.fetch = function (input, init = {}) {
     const method = (init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
@@ -537,27 +535,32 @@
       e.stopPropagation();
       const id = btn.dataset.id;
       if (!id) return;
+      // Optimistic UI first
       const idx = wishlist.indexOf(id);
-      if (idx > -1) {
-        wishlist.splice(idx, 1);
-        showToast('Removed from wishlist');
-      } else {
-        wishlist.push(id);
-        showToast('Added to wishlist');
-      }
+      const adding = idx === -1;
+      if (adding) wishlist.push(id); else wishlist.splice(idx, 1);
       try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
       paintWishlistToggles();
       paintWishlistBadge();
-      // Keep the server session in sync too (signed-in users).
-      if (reqUser) {
-        try {
-          await fetch('/api/wishlist/toggle', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-            body: JSON.stringify({ productId: id })
-          });
-        } catch {}
-      }
+      showToast(adding ? 'Added to wishlist' : 'Removed from wishlist');
+      // The server session is the source of truth for the wishlist page and the
+      // login merge — /api/wishlist/toggle handles guests AND signed-in users
+      // (the CSRF header is auto-attached by the fetch wrapper). The response is
+      // authoritative: adopt it so badge, hearts and the wishlist page always agree.
+      try {
+        const res = await fetch('/api/wishlist/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: id })
+        });
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.wishlist)) {
+          wishlist = data.wishlist.map((i) => i.productId);
+          try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
+          paintWishlistToggles();
+          paintWishlistBadge();
+        }
+      } catch {}
     });
   });
 
@@ -1423,49 +1426,10 @@
     }
   }
 
-  // Keep the product/shop wishlist toggles in sync with the server too
-  // (they currently use localStorage; upgrade them to also hit the API)
-  $$('.wishlist-toggle').forEach(btn => {
-    const original = btn._wishlistHandler;
-    btn.addEventListener('click', async (e) => {
-      // The existing handler already toggles localStorage + UI.
-      // We run it first (it's attached above), then sync to server.
-      // Guard: avoid double-firing if this handler is the original one.
-      if (btn.dataset.wishlistApiFired) return;
-      btn.dataset.wishlistApiFired = '1';
-      const id = btn.dataset.id;
-      if (!id) return;
-      const wasAdded = btn.classList.contains('active');
-      try {
-        const res = await fetch('/api/wishlist/toggle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: id })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          // Update header badge
-          const badge = document.querySelector('.wishlist-btn .badge');
-          if (badge) {
-            badge.textContent = (data.wishlist || []).length;
-            badge.classList.toggle('hidden', (data.wishlist || []).length === 0);
-          }
-        } else {
-          // Revert UI to prior state
-          if (wasAdded) {
-            btn.classList.remove('active');
-            const svg = btn.querySelector('svg');
-            if (svg) { svg.style.fill = 'none'; svg.style.stroke = 'currentColor'; }
-          } else {
-            btn.classList.add('active');
-            const svg = btn.querySelector('svg');
-            if (svg) { svg.style.fill = 'var(--color-accent)'; svg.style.stroke = 'var(--color-accent)'; }
-          }
-        }
-      } catch {}
-      delete btn.dataset.wishlistApiFired;
-    });
-  });
+  // (Wishlist server sync happens in the single .wishlist-toggle handler in
+  // section 10 above — it posts /api/wishlist/toggle for guests and signed-in
+  // users alike. A second handler here used to double-toggle every click,
+  // leaving the server list empty while the badge showed a count.)
 
   // ─── 14M. User menu ──────────────────────────────────────────
   const userMenuTrigger = $('#user-menu-trigger');
