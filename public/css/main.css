@@ -3,7 +3,8 @@
    Minimalist Swiss Style | Cormorant / Montserrat | GSAP
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+/* Fonts are loaded from a <link> in layout.ejs (was an @import here,
+   which serialized the CSS + font request chain before first paint). */
 
 /* ═══════ CSS TOKENS ═══════ */
 :root {
@@ -72,6 +73,29 @@
   --z-toast:    9999;
 }
 
+/* ═══════ DARK MODE ═══════ */
+/* Black/cream aesthetic inverted: deep charcoal bg, cream text, accent stays. */
+[data-theme="dark"] {
+  --color-black:       #f5f1e8;
+  --color-white:       #1a1a1a;
+  --color-cream:       #111111;
+  --color-cream-light: #0d0d0d;
+  --color-gray-50:     #1a1a1a;
+  --color-gray-100:    #222222;
+  --color-gray-200:    #2e2e2e;
+  --color-gray-300:    #3a3a3a;
+  --color-gray-400:    #6b6b6b;
+  --color-gray-500:    #888888;
+  --color-gray-600:    #a0a0a0;
+  --color-gray-700:    #c0c0c0;
+  --color-gray-900:    #e0e0e0;
+
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg:  0 12px 32px rgba(0,0,0,0.5);
+  --shadow-xl:  0 24px 60px rgba(0,0,0,0.6);
+}
+
 /* ═══════ RESET ═══════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; scroll-behavior: smooth; }
@@ -124,6 +148,81 @@ svg { display: block; }
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Remove focus ring for mouse users (pointer: fine) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High-contrast focus ring for interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Dark mode: use a brighter accent for visibility on dark bg */
+[data-theme="dark"] :focus-visible {
+  outline-color: #ff6b8a;
+}
+
+/* Form error announcements: visually distinct + aria-live ready */
+.form-error {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-error::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b8002f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+.form-input-error {
+  border-color: var(--color-accent) !important;
+}
+
+.form-input-error:focus-visible {
+  outline-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(184, 0, 47, 0.2);
+}
+
+/* Visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* aria-live region for dynamic announcements */
+.aria-live-region {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 :focus:not(:focus-visible) { outline: none; }
 
@@ -323,6 +422,16 @@ svg { display: block; }
   50%  { transform: scale(1.4); }
   100% { transform: scale(1); }
 }
+
+/* ── Dark mode toggle button ── */
+.theme-toggle { position: relative; }
+.theme-toggle svg { transition: opacity var(--dur-base) ease, transform var(--dur-base) var(--ease-spring); }
+.theme-toggle .icon-moon { position: absolute; opacity: 0; transform: rotate(-90deg) scale(0.5); }
+.theme-toggle .icon-sun  { opacity: 1; transform: rotate(0deg) scale(1); }
+[data-theme="dark"] .theme-toggle .icon-sun  { opacity: 0; transform: rotate(90deg) scale(0.5); }
+[data-theme="dark"] .theme-toggle .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
+[data-theme="dark"] .site-header { background: rgba(13, 13, 13, 0.92); }
+
 
 /* ═══════ HERO ═══════ */
 .hero-section {
@@ -5223,7 +5332,14 @@ svg { display: block; }
      real measured value via JS-updated custom property (see main.js). */
 }
 @media (max-width: 768px) {
-  /* Nav links move into a 3-dot dropdown at the very left of the header */
+  /* Nav links move into a 3-dot dropdown at the very left of the header. */
+  /* One row on phones: [⋮] [BA GGY] [icons]. The dots used to auto-place onto
+     a second grid row — the header grew to ~120px tall and the logo and dots
+     overlapped. Explicit placement keeps the header compact and aligned. */
+  .header-editorial { grid-template-columns: auto 1fr auto; gap: var(--space-3); }
+  .header-editorial .nav-dots { grid-column: 1; grid-row: 1; justify-self: start; }
+  .header-editorial .logo { grid-column: 2; grid-row: 1; justify-self: center; font-size: 1.5rem; }
+  .header-editorial .header-controls { grid-column: 3; grid-row: 1; justify-self: end; }
   .nav-dots { display: flex; }
   .main-nav { display: none; }
   .main-nav.dots-open {
@@ -5526,15 +5642,18 @@ svg { display: block; }
 
 .flip-stack-stage {
   position: sticky;
-  top: 0;
-  height: 100svh;
+  /* Pin directly BELOW the sticky header instead of under it — the card used
+     to be sliced in half by the header on the first pinned frame. --header-h
+     is kept in sync with the real rendered header height by main.js. */
+  top: var(--header-h, 72px);
+  height: calc(100svh - var(--header-h, 72px));
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: clamp(14px, 4vw, 56px);
-  padding-bottom: calc(clamp(14px, 4vw, 56px) + 56px); /* room for the HUD */
-  perspective: 900px;
+  padding: clamp(10px, 2.4vw, 32px) clamp(14px, 4vw, 56px);
+  padding-bottom: calc(clamp(10px, 2.4vw, 32px) + 52px); /* room for the HUD */
+  perspective: 1100px;
 }
 
 .flip-stack-cards {
@@ -5557,6 +5676,13 @@ svg { display: block; }
   z-index: 1;
   will-change: transform;
 }
+
+/* Deck paint order is fixed in CSS so the stack renders correctly during the
+   few frames before main.js boots (JS re-applies it for any card count) */
+.flip-card:nth-child(1) { z-index: 4; }
+.flip-card:nth-child(2) { z-index: 3; }
+.flip-card:nth-child(3) { z-index: 2; }
+.flip-card:nth-child(4) { z-index: 1; }
 
 .flip-card-link {
   display: grid;
@@ -5767,4 +5893,147 @@ svg { display: block; }
   color: var(--color-gray-500);
   margin-top: var(--space-1);
   min-height: 1.2em;
+}
+
+/* ═══════ SHOP PAGINATION (server-side paging) ═══════ */
+.shop-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-7);
+  flex-wrap: wrap;
+}
+.shop-pagination a,
+.shop-pagination span.page-current {
+  min-width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-gray-200);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-black);
+  text-decoration: none;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+.shop-pagination a:hover { background: var(--color-black); color: var(--color-cream); border-color: var(--color-black); }
+.shop-pagination .page-current { background: var(--color-black); color: var(--color-cream); border-color: var(--color-black); }
+.shop-pagination .page-disabled { opacity: 0.35; pointer-events: none; }
+.shop-pagination .page-gap { border: 0; }
+.results-count { font-variant-numeric: tabular-nums; }
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE 4 — UI POLISH
+   Skeletons, micro-interactions, mobile sticky add-to-cart.
+   Everything here respects prefers-reduced-motion (see the bottom).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Image skeletons: a shimmer holds the layout while the photo decodes ── */
+.product-image-wrapper,
+.category-image,
+.flip-card-media,
+.product-gallery-main { position: relative; }
+.product-image-wrapper.is-loading,
+.category-image.is-loading,
+.flip-card-media.is-loading,
+.product-gallery-main.is-loading {
+  background-image: linear-gradient(100deg, rgba(10, 10, 10, 0.05) 30%, rgba(10, 10, 10, 0.11) 45%, rgba(10, 10, 10, 0.05) 60%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: skeletonSweep 1.4s linear infinite;
+}
+.product-image-wrapper.is-loading .product-image { opacity: 0; }
+.product-image { transition: opacity 0.45s ease; }
+@keyframes skeletonSweep {
+  from { background-position: 130% 0; }
+  to   { background-position: -30% 0; }
+}
+
+/* ── Button press feedback ── */
+.btn, .quick-add { transition: transform 0.12s ease, background var(--dur-base) ease, color var(--dur-base) ease; }
+.btn:active, .quick-add:active, .qty-btn:active, .action-btn:active { transform: scale(0.97); }
+
+/* ── Wishlist heart burst ── */
+.action-btn { position: relative; }
+@keyframes heartBurst {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.3); }
+  55%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.action-btn.heart-burst { animation: heartBurst 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.action-btn.heart-burst::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-accent);
+  animation: heartRing 0.6s ease-out forwards;
+}
+@keyframes heartRing {
+  from { transform: scale(0.55); opacity: 0.9; }
+  to   { transform: scale(1.5); opacity: 0; }
+}
+
+/* ── Fly-to-cart ghost (transform-only, so it never triggers layout) ── */
+.fly-ghost {
+  position: fixed;
+  z-index: 9999;
+  object-fit: cover;
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow: 0 14px 34px rgba(10, 10, 10, 0.28);
+  transition: transform 0.68s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.68s ease;
+  will-change: transform, opacity;
+}
+
+/* ── Mobile sticky add-to-cart (product page) ── */
+.pdp-sticky-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 55;
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px var(--space-4);
+  background: rgba(250, 247, 240, 0.96);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid var(--color-gray-200);
+  transform: translateY(115%);
+  transition: transform 0.32s var(--ease-out, ease);
+}
+.pdp-sticky-bar.is-visible { transform: translateY(0); }
+.pdp-sticky-info { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.pdp-sticky-name {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pdp-sticky-price { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pdp-sticky-cta { flex: 0 0 auto; padding: var(--space-3) var(--space-5); }
+@media (max-width: 768px) {
+  .pdp-sticky-bar { display: flex; }
+  /* keep the footer clear of the fixed bar */
+  body.page-product { padding-bottom: 76px; }
+}
+
+/* ── Reduced motion: keep the polish, drop the movement ── */
+@media (prefers-reduced-motion: reduce) {
+  .is-loading { animation: none !important; }
+  .action-btn.heart-burst,
+  .action-btn.heart-burst::after { animation: none !important; }
+  .fly-ghost { display: none !important; }
+  .pdp-sticky-bar { transition: none; }
 }

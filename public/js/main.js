@@ -48,6 +48,32 @@
   // ─── 1. Reduced Motion ────────────────────────────────────────
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // ─── 1b. Dark mode ───────────────────────────────────────────
+  // Theme persists in localStorage; falls back to system preference.
+  (function initTheme() {
+    const KEY = 'baggy_theme';
+    const saved = localStorage.getItem(KEY);
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (systemDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+    const toggle = $('#theme-toggle');
+    if (toggle) {
+      toggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(KEY, next);
+        toggle.setAttribute('aria-label', next === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      });
+    }
+    // Update the header toggle if the system preference changes (no manual override).
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', (e) => {
+      if (!localStorage.getItem(KEY)) {
+        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+      }
+    });
+  })();
+
   // ─── 2. Character Splitter ────────────────────────────────────
   function splitText(el) {
     if (!el || el.dataset.split || prefersReducedMotion) return;
@@ -236,12 +262,22 @@
       const cards = gsap.utils.toArray('.flip-card', flipStack);
       const n = cards.length;
       if (n > 0 && track && stage) {
-        // Cards authored in reading order; first card is top of deck.
+        // Cards are authored top-of-deck first; JS wins any card-count change.
         cards.forEach((card, i) => { card.style.zIndex = String(n - i); });
-        track.style.setProperty('--flip-height', (n + 1) * 100 + 'vh');
 
-        const seg = 1 / n;
-        const stackGap = Math.min(24, 72 / Math.max(n - 1, 1));
+        // Timeline positions are in 'segments' (1 segment = 1 viewport of
+        // scroll): LEAD is a beat of stillness once the deck pins, then card i
+        // folds away during segment LEAD + i, and HOLD leaves the deck resting
+        // on the LAST card — fully readable — instead of on an empty stage.
+        const LEAD = 0.5;
+        const HOLD = 1;
+        const GAP = 9; // px each deeper card peeks below the one above it
+        const MAX_LAYERS = 3;
+        const restY = (i) => Math.min(i, MAX_LAYERS) * GAP;
+        const restScale = (i) => 1 - Math.min(i, MAX_LAYERS) * 0.02;
+
+        track.style.setProperty('--flip-height', (LEAD + n + HOLD) * 100 + 'vh');
+
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: track,
@@ -253,30 +289,51 @@
         });
 
         cards.forEach((card, i) => {
-          const exitStart = i * seg;
-          const stackedOffset = stackGap * i;
-          // Resting deck state for cards beneath the top one
+          // Two elements, two jobs, so no tween ever fights another over the
+          // same transform: the outer card folds + slides away, the inner link
+          // carries the stack offset + depth scale.
+          const inner = card.querySelector('.flip-card-link') || card;
+
           if (i > 0) {
-            const restOffset = Math.min(i * 12, 34);
-            const restScale = 1 - Math.min(i * 0.012, 0.035);
-            gsap.set(card, { y: restOffset, scale: restScale, transformOrigin: '50% 100%' });
-            // Rise into place as the card above folds away
-            tl.to(card, { y: stackedOffset, scale: 1, ease: 'none', duration: seg * 0.7 }, Math.max(0, exitStart - seg * 0.7));
+            gsap.set(inner, { y: restY(i), scale: restScale(i) });
+            // Rise one layer each time a card above folds away.
+            for (let j = 0; j < i; j++) {
+              tl.to(inner, {
+                y: restY(i - j - 1),
+                scale: restScale(i - j - 1),
+                duration: 0.85,
+                ease: 'power2.out'
+              }, LEAD + j);
+            }
           }
-          // Exit: fold upward and out of the clipped stage
-          tl.to(card, { yPercent: -118, rotateX: 22, ease: 'none', duration: seg, transformOrigin: '50% 50%' }, exitStart);
+
+          // Every card except the last folds back over its own bottom edge (so
+          // its photo stays visible throughout the fold) and is then carried up
+          // out of the clipped stage.
+          if (i < n - 1) {
+            tl.to(card, {
+              rotateX: 24,
+              yPercent: -108,
+              transformOrigin: '50% 100%',
+              duration: 1,
+              ease: 'power1.inOut'
+            }, LEAD + i)
+              .to(card, { opacity: 0, duration: 0.4, ease: 'none' }, LEAD + i + 0.6);
+          }
         });
+
+        // Trailing hold: keeps the resolved deck on screen for one segment.
+        tl.to({}, { duration: HOLD }, '>');
 
         // ── HUD: card counter (01 / 04) + progress bar ──
         const counterEl = stage.querySelector('.flip-counter-current');
         const fillEl = stage.querySelector('.flip-stack-progress-fill');
         const pad = (v) => String(v).padStart(2, '0');
         tl.eventCallback('onUpdate', () => {
-          const p = tl.progress();
-          // counter: which card is currently on top (its exit segment is active)
-          const top = p >= 1 ? n : Math.min(n, Math.floor(p / seg) + 1);
+          const t = tl.time();
+          const top = Math.min(n, Math.max(1, Math.floor(t - LEAD) + 1));
           if (counterEl) counterEl.textContent = pad(top);
-          if (fillEl) fillEl.style.transform = 'scaleX(' + p + ')';
+          if (fillEl) fillEl.style.transform = 'scaleX(' + tl.progress() + ')';
         });
         ScrollTrigger.refresh();
       }
@@ -447,52 +504,113 @@
   });
 
   // ─── 10. Wishlist Toggle (only for .wishlist-toggle, NOT the .wishlist-btn header link) ──
+  // Guest behaviour: keep a localStorage copy during browsing. Once the visitor
+  // signs in, that copy is pushed to the server (which merges it into the account's
+  // persisted Wishlist) and the client switches to the server-backed list.
+  let wishlist = (() => {
+    try { return JSON.parse(localStorage.getItem('baggy_wishlist') || '[]') || []; }
+    catch { return []; }
+  })();
+
+  function paintWishlistBadge() {
+    const badge = document.querySelector('.wishlist-btn .badge');
+    if (!badge) return;
+    badge.textContent = wishlist.length;
+    badge.classList.toggle('hidden', wishlist.length === 0);
+  }
+
+  function paintWishlistToggles() {
+    document.querySelectorAll('.wishlist-toggle').forEach((b) => {
+      const on = wishlist.includes(b.dataset.id);
+      b.classList.toggle('active', on);
+      const svg = b.querySelector('svg');
+      if (svg) {
+        svg.style.fill = on ? 'var(--color-accent)' : 'none';
+        svg.style.stroke = on ? 'var(--color-accent)' : 'currentColor';
+      }
+    });
+  }
+
+  paintWishlistToggles();
+  paintWishlistBadge();
+
   $$('.wishlist-toggle').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       const id = btn.dataset.id;
       if (!id) return;
-      let wish = JSON.parse(localStorage.getItem('baggy_wishlist') || '[]');
-      const idx = wish.indexOf(id);
+      const idx = wishlist.indexOf(id);
       if (idx > -1) {
-        wish.splice(idx, 1);
-        btn.classList.remove('active');
-        const svg = btn.querySelector('svg');
-        if (svg) { svg.style.fill = 'none'; svg.style.stroke = 'currentColor'; }
+        wishlist.splice(idx, 1);
         showToast('Removed from wishlist');
       } else {
-        wish.push(id);
-        btn.classList.add('active');
-        const svg = btn.querySelector('svg');
-        if (svg) { svg.style.fill = 'var(--color-accent)'; svg.style.stroke = 'var(--color-accent)'; }
+        wishlist.push(id);
         showToast('Added to wishlist');
       }
-      localStorage.setItem('baggy_wishlist', JSON.stringify(wish));
-      // Update header badge
-      const badge = document.querySelector('.wishlist-btn .badge');
-      if (badge) {
-        badge.textContent = wish.length;
-        badge.classList.toggle('hidden', wish.length === 0);
+      try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
+      paintWishlistToggles();
+      paintWishlistBadge();
+      // Keep the server session in sync too (signed-in users).
+      if (reqUser) {
+        try {
+          await fetch('/api/wishlist/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            body: JSON.stringify({ productId: id })
+          });
+        } catch {}
       }
     });
   });
 
-  // Mark already-saved items on page load
-  const savedIds = JSON.parse(localStorage.getItem('baggy_wishlist') || '[]');
-  savedIds.forEach((id) => {
-    document.querySelectorAll(`.wishlist-toggle[data-id="${id}"]`).forEach((b) => {
-      b.classList.add('active');
-      const svg = b.querySelector('svg');
-      if (svg) { svg.style.fill = 'var(--color-accent)'; svg.style.stroke = 'var(--color-accent)'; }
-    });
-  });
-  // Update header wishlist badge
-  const headerWishBadge = document.querySelector('.wishlist-btn .badge');
-  if (headerWishBadge) {
-    headerWishBadge.textContent = savedIds.length;
-    headerWishBadge.classList.toggle('hidden', savedIds.length === 0);
+  // Sync the guest localStorage wishlist into the server session after login/register.
+  // Mirrors the cart client's pattern: the auth response returns wishlistCount, and any
+  // previously-stored guest items have already been folded into the account by adoptUserSession.
+  function bindAuthWidgets() {
+    const loginForm = document.querySelector('#login-form') || document.querySelector('[data-login-form]');
+    const registerForm = document.querySelector('#register-form') || document.querySelector('[data-register-form]');
+    const authForms = [loginForm, registerForm].filter(Boolean);
+    let wire = (form) => {
+      form.addEventListener('submit', async (e) => {
+        // Let the form's own handler submit normally; we just request the server list
+        // after a short delay so the session has been rebuilt by adoptUserSession.
+        setTimeout(async () => {
+          try {
+            const r = await fetch('/api/wishlist', {
+              headers: { 'X-CSRF-Token': csrfToken }
+            });
+            if (r.ok) {
+              const data = await r.json();
+              // server-backed list becomes the source of truth; clear localStorage
+              // so the guest copy doesn't double-count on the next visit.
+              wishlist = (data.wishlist || []).map(i => i.productId);
+              try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
+              paintWishlistToggles();
+              paintWishlistBadge();
+            }
+          } catch {}
+        }, 400);
+      });
+    };
+    authForms.forEach(wire);
+
+    // Also refresh when the auth polling widget (if any) confirms a sign-in.
+    const authStatus = document.querySelector('[data-auth-status]');
+    if (authStatus) {
+      authStatus.addEventListener('auth-signed-in', () => {
+        fetch('/api/wishlist', { headers: { 'X-CSRF-Token': csrfToken } })
+          .then(r => r.ok ? r.json() : Promise.resolve({}))
+          .then(data => {
+            wishlist = (data.wishlist || [] || []).map(i => i.productId);
+            try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
+            paintWishlistToggles();
+            paintWishlistBadge();
+          });
+      });
+    }
   }
+  bindAuthWidgets();
 
   // ─── 11. Product Page Interactions ───────────────────────────
   const productPage = $('.product-page');
@@ -609,10 +727,13 @@
       );
       const sanitize = (s) => String(s).replace(/[<>]/g, '');
       const submitBtn = checkoutForm.querySelector('button[type="submit"]');
+      const isCard = payment === 'card';
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Processing...';
+      submitBtn.textContent = isCard ? 'Starting secure payment...' : 'Processing...';
       try {
-        const res = await fetch('/api/checkout', {
+        // Card goes through Stripe's hosted checkout: the server creates the
+        // order (unpaid) and returns the gateway URL to redirect to.
+        const res = await fetch(isCard ? '/api/stripe/checkout' : '/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -624,6 +745,10 @@
         });
         const data = await res.json();
         if (data.ok) {
+          if (data.url) {
+            window.location.href = data.url; // off to Stripe
+            return;
+          }
           showToast('Order placed successfully!');
           window.location.href = data.redirect || `/checkout/success`;
           return;
@@ -925,20 +1050,13 @@
   }
 
   // ─── 16. Sort select ──────────────────────────────────────────
+  // Sorting happens in the database: keep the current filter/search params and
+  // reload with ?sort=. (Replaced a client-side re-order that only did price.)
   $('#sort-select')?.addEventListener('change', function () {
-    const grid = $('.shop-grid');
-    if (!grid) return;
-    const cards = [...grid.querySelectorAll('.product-card')];
-    const sorted = cards.sort((a, b) => {
-      const priceA = parseInt(a.querySelector('.price-current')?.textContent.replace(/[^\d]/g, '') || '0');
-      const priceB = parseInt(b.querySelector('.price-current')?.textContent.replace(/[^\d]/g, '') || '0');
-      if (this.value === 'price-asc')  return priceA - priceB;
-      if (this.value === 'price-desc') return priceB - priceA;
-      return 0;
-    });
-    if (this.value === 'price-asc' || this.value === 'price-desc') {
-      sorted.forEach((c) => grid.appendChild(c));
-    }
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', this.value);
+    url.searchParams.delete('page');
+    window.location.href = url.pathname + '?' + url.searchParams.toString();
   });
 
   // ─── 14g. FAQ Accordion ────────────────────────────────────────
@@ -1884,8 +2002,265 @@
     }
   });
 
+  // ─── 17. Image skeletons ─────────────────────────────────────
+  // A shimmer holds each media box until its photo decodes, so grids stop
+  // collapsing and popping in as images arrive.
+  const SKELETON_HOSTS = '.product-image-wrapper, .category-image, .flip-card-media, .product-gallery-main';
+  $$('img').forEach((img) => {
+    const host = img.closest(SKELETON_HOSTS);
+    if (!host || host.dataset.skeletonBound) return;
+    host.dataset.skeletonBound = '1';
+    const settled = () => host.classList.remove('is-loading');
+    if (img.complete && img.naturalWidth > 0) { settled(); return; }
+    host.classList.add('is-loading');
+    img.addEventListener('load', settled, { once: true });
+    img.addEventListener('error', settled, { once: true });
+  });
+
+  // ─── 18. Micro-interactions ──────────────────────────────────
+  // Fly-to-cart: a ghost of the product photo arcs into the cart icon.
+  function flyToCart(button) {
+    if (prefersReducedMotion || !button) return;
+    const card = button.closest('.product-card, .product-detail, .flip-card');
+    const img = card && card.querySelector('.product-image, .product-gallery-main img, .flip-card-media img');
+    const target = document.querySelector('.cart-count') || document.querySelector('.cart-link, [aria-label="Cart"]');
+    if (!img || !target) return;
+    const from = img.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+    if (!from.width || !to.width) return;
+    const ghost = document.createElement('img');
+    ghost.className = 'fly-ghost';
+    ghost.src = img.currentSrc || img.src;
+    ghost.alt = '';
+    ghost.setAttribute('aria-hidden', 'true');
+    ghost.style.left = from.left + 'px';
+    ghost.style.top = from.top + 'px';
+    ghost.style.width = from.width + 'px';
+    ghost.style.height = from.height + 'px';
+    document.body.appendChild(ghost);
+    requestAnimationFrame(() => {
+      const dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+      const dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+      ghost.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(0.18)';
+      ghost.style.opacity = '0.15';
+    });
+    setTimeout(() => ghost.remove(), 780);
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!(e.target instanceof Element)) return;
+    const addBtn = e.target.closest('.quick-add, .add-to-cart');
+    if (addBtn) flyToCart(addBtn);
+    const wishBtn = e.target.closest('.wishlist-toggle');
+    if (wishBtn && !prefersReducedMotion) {
+      wishBtn.classList.remove('heart-burst');
+      void wishBtn.offsetWidth;
+      wishBtn.classList.add('heart-burst');
+      setTimeout(() => wishBtn.classList.remove('heart-burst'), 700);
+    }
+  });
+
+  // ─── 19. Mobile sticky add-to-cart ───────────────────────────
+  const stickyBar = $('#pdp-sticky-bar');
+  const mainAddBtn = $('.add-to-cart');
+  if (stickyBar && mainAddBtn) {
+    $('#pdp-sticky-cta')?.addEventListener('click', () => mainAddBtn.click());
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([entry]) => {
+        stickyBar.classList.toggle('is-visible', !entry.isIntersecting);
+      }, { threshold: 0, rootMargin: '0px 0px -24px 0px' }).observe(mainAddBtn);
+    } else {
+      stickyBar.classList.add('is-visible');
+    }
+  }
+
+  // ─── 20. Newsletter popup (frequency-capped) ─────────────────
+  // Once a week at most, homepage only, session-scoped, after 14s or 40%
+  // scroll — whichever comes first. Disabled under reduced motion.
+  const newsletterPopup = $('#newsletter-popup');
+  if (newsletterPopup) {
+    const PROMPT_KEY = 'baggy_newsletter_prompt';
+    const WEEK = 7 * 24 * 60 * 60 * 1000;
+    const lastPrompt = Number(localStorage.getItem(PROMPT_KEY) || 0);
+    const mayPrompt = location.pathname === '/' &&
+      Date.now() - lastPrompt > WEEK &&
+      !sessionStorage.getItem('baggy_popup_shown') &&
+      !prefersReducedMotion;
+    const remember = () => {
+      localStorage.setItem(PROMPT_KEY, String(Date.now()));
+      sessionStorage.setItem('baggy_popup_shown', '1');
+    };
+    if (mayPrompt) {
+      let prompted = false;
+      const timer = setTimeout(() => show(), 14000);
+      function show() {
+        if (prompted) return;
+        prompted = true;
+        remember();
+        clearTimeout(timer);
+        window.removeEventListener('scroll', onScroll);
+        openModal('#newsletter-popup');
+      }
+      function onScroll() {
+        if (window.scrollY > window.innerHeight * 0.4) show();
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    newsletterPopup.addEventListener('click', (e) => {
+      if (e.target instanceof Element && e.target.closest('.modal-close')) remember();
+    });
+    $('#newsletter-popup-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = e.target.querySelector('input[type="email"]');
+      const email = input && input.value.trim();
+      if (!email) return;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Subscribing...'; }
+      try {
+        const res = await fetch('/api/newsletter/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('Thanks! Check your inbox.');
+          closeModal(newsletterPopup);
+        } else if (data.duplicate) {
+          showToast(data.message || 'You are already on the list');
+          closeModal(newsletterPopup);
+        } else {
+          showToast(data.message || 'Subscription failed', 'error');
+        }
+      } catch {
+        showToast('Network error - please try again', 'error');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Subscribe'; }
+      }
+    });
+  }
+
   // Expose themed dialog helpers for page-level scripts
   window.showToast = showToast;
   window.showConfirm = showConfirm;
   window.showAlert = showAlert;
+
+  // ─── Product Reviews (customer-facing) ───────────────────────────
+  // Only on the product page. The star picker is rendered server-side by product.ejs
+  // so the JS is purely behavioural: paint the initial selection, let the user change
+  // it, POST to /api/reviews, then reload so the new review + recomputed rating appear.
+  (function () {
+    const productPage = document.querySelector('.product-page');
+    if (!productPage) return;
+
+    const reviewForm = document.getElementById('review-form');
+    if (!reviewForm) return;
+
+    let chosenRating = 1;
+    const stars = Array.from(reviewForm.querySelectorAll('.star-option'));
+    const ratingInput = document.getElementById('review-rating');
+    const errorBox = document.getElementById('review-error');
+    const submitBtn = document.getElementById('review-submit');
+    const textInput = document.getElementById('review-text');
+
+    function paintStars() {
+      stars.forEach((el, i) => {
+        const val = i + 1;
+        const on = val <= chosenRating;
+        el.classList.toggle('selected', on);
+        el.setAttribute('aria-checked', on ? 'true' : 'false');
+        const svg = el.querySelector('svg');
+        if (svg) {
+          svg.style.fill = on ? 'var(--color-accent)' : 'none';
+          svg.style.stroke = on ? 'var(--color-accent)' : 'currentColor';
+        }
+      });
+      if (ratingInput) ratingInput.value = chosenRating;
+    }
+
+    stars.forEach((el) => {
+      el.addEventListener('click', () => {
+        chosenRating = parseInt(el.dataset.value, 10) || 1;
+        paintStars();
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          chosenRating = parseInt(el.dataset.value, 10) || 1;
+          paintStars();
+        }
+      });
+    });
+
+    paintStars();
+
+    function csrfToken() {
+      return document.querySelector('input[name="_csrf"]')?.value
+        || document.querySelector('meta[name="csrf-token"]')?.content
+        || '';
+    }
+
+    function userName() {
+      return (document.querySelector('[data-user-name]') || {}).dataset?.userName || '';
+    }
+
+    reviewForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (errorBox) errorBox.textContent = '';
+      const text = textInput?.value?.trim();
+      if (!text) {
+        if (errorBox) errorBox.textContent = 'Please write something about this product.';
+        textInput?.focus();
+        return;
+      }
+      if (!submitBtn) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Posting…';
+      try {
+        const r = await fetch('/api/reviews', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken()
+          },
+          body: JSON.stringify({
+            productId: reviewForm.dataset.productId,
+            rating: chosenRating,
+            text,
+            name: userName()
+          })
+        });
+        const data = await r.json();
+        if (r.ok && data.ok) {
+          if (errorBox) errorBox.textContent = '';
+          showToast('Thanks — your review has been posted.', 'success');
+          reviewForm.reset();
+          chosenRating = 1;
+          paintStars();
+          textInput && textInput.focus();
+          setTimeout(() => location.reload(), 900);
+        } else {
+          if (errorBox) errorBox.textContent = data.message || 'Could not post your review. Please try again.';
+        }
+      } catch (err) {
+        if (errorBox) errorBox.textContent = 'Network error. Please try again.';
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Post Review';
+        }
+      }
+    });
+  })();
+
+  // ─── 15. PWA: service worker (installable + offline shell) ─────
+  // Registered on a secure origin only (localhost counts). The worker ignores
+  // /api, /admin and checkout traffic entirely — see public/sw.js.
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/public/sw.js').catch(() => {
+        /* offline support is a progressive enhancement — never break the page */
+      });
+    });
+  }
 })();

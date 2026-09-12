@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="BA GGY">
+  <rect width="512" height="512" rx="96" fill="#0a0a0a"/>
+  <text x="256" y="268" text-anchor="middle" fill="#f5f1e8"
+        font-family="Georgia, 'Times New Roman', serif" font-size="150"
+        font-weight="700" letter-spacing="6">BA</text>
+  <text x="256" y="392" text-anchor="middle" fill="#f5f1e8"
+        font-family="Georgia, 'Times New Roman', serif" font-size="150"
+        font-weight="700" letter-spacing="6">GGY</text>
+  <rect x="150" y="424" width="212" height="14" rx="7" fill="#b8002f"/>
+</svg>

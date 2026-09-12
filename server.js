@@ -2,6 +2,7 @@ require('dotenv').config();
 const express    = require('express');
 const path       = require('path');
 const helmet     = require('helmet');
+const compression = require('compression');
 const cors       = require('cors');
 const fs         = require('fs');
 const mongoose   = require('mongoose');
@@ -15,6 +16,7 @@ const Wishlist   = require('./models/Wishlist');
 const User       = require('./models/User');
 const Settings   = require('./models/Settings');
 const Coupon     = require('./models/Coupon');
+const Review     = require('./models/Review');
 const { runSmokeTest } = require('./scripts/smoke-templates');
 const { Contact, Newsletter, OrderMessage } = require('./models/Newsletter');
 
@@ -31,9 +33,16 @@ const { globalLimiter, checkoutLimiter, couponLimiter, contactLimiter, authLimit
 const { asyncHandler, errorHandler } = require('./middleware/errors');
 const productRepo = require('./services/productRepo');
 const logger = require('./services/logger');
+const email = require('./services/email');
+const stripe = require('./services/stripe');
+const checkoutRoutes = require('./routes/checkout');
 
 const app = express();
 let server; // assigned in boot() — used by the SIGINT handler for graceful shutdown
+
+// Behind a reverse proxy this makes req.protocol reflect the real scheme, so
+// canonical URLs and Stripe redirects are https in production.
+app.set('trust proxy', 1);
 
 
 // ── Security ────────────────────────────────────────────────────
@@ -58,6 +67,11 @@ app.use(helmet({
     }
   }
 }));
+// gzip/brotli-style compression for responses over 1 KB. Placed before static so
+// HTML *and* CSS/JS ship compressed; images are already compressed formats and
+// are skipped by the threshold.
+app.use(compression({ threshold: 1024 }));
+
 // Static files first: images/CSS/JS must not consume the global rate-limit budget
 // or create sessions (memory + latency) on every asset request.
 app.use('/public', express.static(path.join(__dirname, 'public'), { maxAge: '7d', immutable: true }));
@@ -69,6 +83,30 @@ app.use(cors({ origin: isProduction ? false : true, credentials: true }));
 // ── Helpers ───────────────────────────────────────────────────────
 // (isValidEmail / sanitizeText / escapeRegex / parseBoolean live in utils/sanitize.js;
 //  fmt / imgUrl / getDistinctCategories / sessionUser / order tracking live in utils/helpers.js)
+
+// ── Shared dependency bundle ─────────────────────────────────────
+// Every routes/* module is a factory: (app, d). Defined up here (before the body
+// parsers) so the Stripe webhook can be mounted ahead of express.json().
+const d = {
+  Product, Order, Wishlist, User, Settings, Coupon, Newsletter, Contact, OrderMessage, Review,
+  renderPage, imgUrl, getDistinctCategories, sessionUser, ORDER_STATUSES, trackingStepsFor,
+  CLOUDINARY_PLACEHOLDER, normalizeQty,
+  sanitizeText, isValidEmail, escapeRegex, parseBoolean, validatePassword,
+  isAdmin, requireAdminApi, verifyCsrf, asyncHandler, getCsrfToken,
+  checkoutLimiter, couponLimiter, contactLimiter, authLimiter, passwordResetLimiter,
+  productRepo, logger, email, stripe,
+  productImageUpload: cloudinaryService.productImageUpload,
+  validateProductImages: cloudinaryService.validateProductImages,
+  uploadToCloudinary: cloudinaryService.uploadToCloudinary,
+  ADMIN_EMAILS
+};
+
+// ── Stripe webhook (raw body) ────────────────────────────────────
+// MUST be mounted before express.json(): Stripe signs the raw request bytes, so
+// this route has to claim the stream first to verify the signature.
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) =>
+  checkoutRoutes.stripeWebhook(req, res, d)
+);
 
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
@@ -107,6 +145,7 @@ function renderPage(req, res, page, data = {}) {
   const base = {
     year: new Date().getFullYear(),
     assetV: ASSET_VERSION,
+    page,
     pageTitle: 'BA GGY — Fashion That Moves With You',
     bodyClass: '',
     category: '',
@@ -120,6 +159,13 @@ function renderPage(req, res, page, data = {}) {
     user: req.session?.user || null,
     csrfToken: getCsrfToken(req),
     imgUrl,
+    // SEO defaults — routes can override any of these per page.
+    canonicalUrl: `${req.protocol}://${req.get('host')}${String(req.originalUrl || '/').split('?')[0]}`,
+    // Never let search engines index admin screens or private/transactional pages.
+    noIndex: /^admin/.test(page) || [
+      '404', 'cart', 'checkout', 'checkout-success', 'account', 'login', 'register',
+      'orders', 'forgot-password', 'reset-password', 'track', 'contact-thankyou'
+    ].includes(page),
     ...data
   };
   ejs.renderFile(path.join(__dirname, 'views', page + '.ejs'), base, (err, inner) => {
@@ -138,20 +184,7 @@ app.use((req, res, next) => {
 });
 
 // ── Routes (split from the monolith — Phase 2) ─────────────────
-// Each routes/* module is a factory: (app, d) with d = shared dependencies.
-const d = {
-  Product, Order, Wishlist, User, Settings, Coupon, Newsletter, Contact, OrderMessage,
-  renderPage, imgUrl, getDistinctCategories, sessionUser, ORDER_STATUSES, trackingStepsFor,
-  CLOUDINARY_PLACEHOLDER, normalizeQty,
-  sanitizeText, isValidEmail, escapeRegex, parseBoolean, validatePassword,
-  isAdmin, requireAdminApi, verifyCsrf, asyncHandler, getCsrfToken,
-  checkoutLimiter, couponLimiter, contactLimiter, authLimiter, passwordResetLimiter,
-  productRepo, logger,
-  productImageUpload: cloudinaryService.productImageUpload,
-  validateProductImages: cloudinaryService.validateProductImages,
-  uploadToCloudinary: cloudinaryService.uploadToCloudinary,
-  ADMIN_EMAILS
-};
+// The shared dependency bundle `d` is defined above, next to the body parsers.
 require('./routes/storefront')(app, d);
 require('./routes/api')(app, d);
 require('./routes/cart')(app, d);

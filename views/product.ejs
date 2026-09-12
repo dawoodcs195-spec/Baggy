@@ -23,7 +23,7 @@
         <h1 class="product-title"><%= product.name %></h1>
         <div class="product-rating">
           <span class="stars" aria-hidden="true"><%= '★'.repeat(Math.floor(product.rating)) %><%= product.rating % 1 >= 0.5 ? '½' : '' %></span>
-          <span class="rating-count">(<%= product.reviewCount %> reviews)</span>
+          <span class="rating-count">(<%= (product.reviewCount || 0) %> reviews)</span>
         </div>
         <div class="product-price-block">
           <span class="price-current">₨<%= product.price.toLocaleString() %></span>
@@ -116,6 +116,92 @@
     </div>
   </div>
 
+  <!-- ── Customer Reviews ────────────────────────────────────────────── -->
+  <section class="section reviews-section">
+    <div class="container">
+      <div class="reviews-layout">
+        <div class="reviews-main">
+          <div class="section-header" data-reveal>
+            <h2 class="section-title">Customer Reviews</h2>
+            <p class="section-sub"><%= (product.reviewCount || 0) %> <%= (product.reviewCount || 0) === 1 ? 'review' : 'reviews' %></p>
+          </div>
+
+          <% if (product.reviews && product.reviews.length) { %>
+            <div class="reviews-list">
+              <% product.reviews.forEach((r, i) => { %>
+                <article class="review-card" data-review-id="<%= r._id %>">
+                  <div class="review-head">
+                    <div class="review-author">
+                      <div class="review-avatar" aria-hidden="true"><%= (r.name || '').charAt(0).toUpperCase() %></div>
+                      <div class="review-meta">
+                        <span class="review-name"><%= r.name %></span>
+                        <span class="review-date"><%= new Date(r.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+                      </div>
+                    </div>
+                    <div class="review-rating" aria-label="<%= r.rating %> out of 5">
+                      <% for (let s = 1; s <= 5; s++) { %>
+                        <svg class="star <%= s <= r.rating ? 'filled' : '' %>" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 1.18 14.13 7 17.77 12 17.77 12 9.27 18.09 6.26 12 2z"/></svg>
+                      <% } %>
+                    </div>
+                  </div>
+                  <% if (r.verifiedPurchase) { %>
+                    <span class="review-verified">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                      Verified Purchase
+                    </span>
+                  <% } %>
+                  <p class="review-body"><%= r.text %></p>
+                  <% if (typeof r.status !== 'undefined' && r.status === 'hidden') { %>
+                    <span class="review-flag">Hidden — pending review</span>
+                  <% } %>
+                </article>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div class="reviews-empty">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <p>No reviews yet. Be the first to share your experience.</p>
+            </div>
+          <% } %>
+        </div>
+
+        <% if (user) { %>
+          <div class="reviews-form-wrap">
+            <div class="section-header" data-reveal>
+              <h3 class="reviews-form-title">Write a Review</h3>
+            </div>
+            <form class="review-form" id="review-form" data-product-id="<%= product.id %>">
+              <div class="form-group">
+                <label>Your Rating</label>
+                <div class="star-picker" role="radiogroup" aria-label="Rating">
+                  <% for (let s = 1; s <= 5; s++) { %>
+                    <button type="button" class="star-option <%= s === 1 ? 'selected' : '' %>" data-value="<%= s %>" aria-label="<%= s %> star<%= s === 1 ? '' : 's' %>" role="radio" aria-checked="<%= s === 1 ? 'true' : 'false' %>">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 1.18 14.13 7 17.77 12 17.77 12 9.27 18.09 6.26 12 2z"/></svg>
+                    </button>
+                  <% } %>
+                </div>
+                <input type="hidden" name="rating" id="review-rating" value="1" />
+              </div>
+              <div class="form-group">
+                <label for="review-text">Your Review</label>
+                <textarea id="review-text" name="text" rows="4" maxlength="1000" placeholder="Share what you liked (or didn't) about this product..." required></textarea>
+              </div>
+              <div class="form-group">
+                <button type="submit" class="btn btn-primary" id="review-submit">Post Review</button>
+                <span class="review-form-note">Your review is reviewed before it appears publicly.</span>
+              </div>
+              <div class="review-form-error" id="review-error" role="alert" aria-live="polite"></div>
+            </form>
+          </div>
+        <% } else { %>
+          <div class="reviews-login-prompt">
+            <p><a href="/account">Sign in</a> to leave a review.</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </section>
+
   <section class="section related-section">
     <div class="container">
       <div class="section-header" data-reveal>
@@ -143,4 +229,13 @@
       </div>
     </div>
   </section>
+</div>
+
+<!-- Mobile sticky add-to-cart: shown once the main button scrolls away -->
+<div class="pdp-sticky-bar" id="pdp-sticky-bar">
+  <div class="pdp-sticky-info">
+    <span class="pdp-sticky-name"><%= product.name %></span>
+    <span class="pdp-sticky-price">₨<%= product.price.toLocaleString() %></span>
+  </div>
+  <button class="btn btn-primary pdp-sticky-cta" id="pdp-sticky-cta" type="button">Add to Cart</button>
 </div>

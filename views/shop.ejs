@@ -35,14 +35,19 @@
 
       <main class="shop-main">
         <div class="shop-toolbar">
+          <% const currentSort = (typeof sort !== 'undefined' && sort) ? sort : 'featured'; %>
+          <label class="sr-only" for="sort-select">Sort products</label>
           <select id="sort-select" class="sort-select">
-            <option value="featured">Featured</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-            <option value="newest">Newest</option>
-            <option value="rating">Top Rated</option>
+            <option value="featured" <%= currentSort === 'featured' ? 'selected' : '' %>>Featured</option>
+            <option value="price-asc" <%= currentSort === 'price-asc' ? 'selected' : '' %>>Price: Low to High</option>
+            <option value="price-desc" <%= currentSort === 'price-desc' ? 'selected' : '' %>>Price: High to Low</option>
+            <option value="newest" <%= currentSort === 'newest' ? 'selected' : '' %>>Newest</option>
+            <option value="rating" <%= currentSort === 'rating' ? 'selected' : '' %>>Top Rated</option>
+            <option value="name" <%= currentSort === 'name' ? 'selected' : '' %>>A–Z</option>
           </select>
-          <span class="results-count"><%= displayProducts.length %> products</span>
+          <span class="results-count">
+            <% if (typeof catalog !== 'undefined' && catalog && catalog.total) { %><%= catalog.from %>–<%= catalog.to %> of <%= catalog.total %> products<% } else { %>0 products<% } %>
+          </span>
         </div>
 
         <div class="product-grid shop-grid">
@@ -86,6 +91,28 @@
           <div class="empty-state" data-reveal>
             <p>No products found.</p>
           </div>
+        <% } %>
+
+        <% if (typeof catalog !== 'undefined' && catalog && catalog.pages > 1) {
+             const pageQs = (p) => {
+               const params = new URLSearchParams();
+               if (typeof query !== 'undefined' && query) params.set('q', query);
+               if (cat) params.set('category', cat);
+               if (currentSort && currentSort !== 'featured') params.set('sort', currentSort);
+               params.set('page', p);
+               return '/shop?' + params.toString();
+             }; %>
+          <nav class="shop-pagination" aria-label="Product pages">
+            <a class="<%= catalog.hasPrev ? '' : 'page-disabled' %>" href="<%= pageQs(Math.max(1, catalog.page - 1)) %>" rel="prev" aria-label="Previous page">Prev</a>
+            <% for (let p = 1; p <= catalog.pages; p++) { %>
+              <% if (p === catalog.page) { %>
+                <span class="page-current" aria-current="page"><%= p %></span>
+              <% } else { %>
+                <a href="<%= pageQs(p) %>"><%= p %></a>
+              <% } %>
+            <% } %>
+            <a class="<%= catalog.hasNext ? '' : 'page-disabled' %>" href="<%= pageQs(Math.min(catalog.pages, catalog.page + 1)) %>" rel="next" aria-label="Next page">Next</a>
+          </nav>
         <% } %>
       </main>
     </div>

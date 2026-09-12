@@ -29,4 +29,11 @@ const productSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
+// Indexes: catalog filtering/pagination and full-text search (Phase 3/5).
+// NOTE: if a legacy text index already exists in MongoDB with different fields,
+// drop it first (db.products.dropIndex('name_text')) before this one applies.
+productSchema.index({ category: 1, active: 1, price: 1 });
+productSchema.index({ active: 1, featured: 1 });
+productSchema.index({ name: 'text', description: 'text', subcategory: 'text' });
+
 module.exports = mongoose.model('Product', productSchema);

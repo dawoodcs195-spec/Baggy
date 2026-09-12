@@ -34,6 +34,11 @@ async function seedTestData() {
   try { await Coupon.deleteMany({}); } catch {}
   try { await User.deleteMany({}); } catch {}
   try { const Order = require('../models/Order'); await Order.deleteMany({}); } catch {}
+  try { const Wishlist = require('../models/Wishlist'); await Wishlist.deleteMany({}); } catch {}
+  try { const Newsletter = require('../models/Newsletter'); await Newsletter.deleteMany({}); } catch {}
+  try { const Contact = require('../models/Contact'); await Contact.deleteMany({}); } catch {}
+  try { const OrderMessage = require('../models/OrderMessage'); await OrderMessage.deleteMany({}); } catch {}
+  try { const Review = require('../models/Review'); await Review.deleteMany({}); } catch {}
 
   // Seed a test product
   await Product.create({

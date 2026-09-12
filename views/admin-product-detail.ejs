@@ -83,7 +83,7 @@
               </div>
               <div class="meta-row">
                 <span class="meta-label">Rating</span>
-                <span class="meta-value"><%= product.rating %> ★ (<%= product.reviewCount %> reviews)</span>
+                <span class="meta-value"><%= (product.rating || 0) %> ★ (<%= (product.reviewCount || 0) %> reviews)</span>
               </div>
               <div class="meta-row">
                 <span class="meta-label">Sizes</span>
@@ -215,6 +215,60 @@
   </div>
 </div>
 
+    <!-- ── Review Moderation ─────────────────────────────────────────── -->
+    <section class="admin-section reviews-admin-section" id="reviews-panel">
+      <div class="container">
+        <div class="admin-layout" style="padding-top:0;">
+          <div class="admin-content" data-reveal>
+            <div class="reviews-admin-head">
+              <h2 class="page-title" data-reveal>Reviews — <%= product.name %></h2>
+              <div class="reviews-admin-tools">
+                <select id="reviews-filter-status" class="admin-select">
+                  <option value="">All statuses</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending</option>
+                  <option value="hidden">Hidden</option>
+                </select>
+              </div>
+            </div>
+            <% if (reviews && reviews.length) { %>
+              <div class="reviews-admin-list">
+                <% reviews.forEach(r => { %>
+                  <div class="review-admin-card" data-review-id="<%= r._id %>">
+                    <div class="review-admin-head">
+                      <span class="review-admin-product"><%= typeof productNames !== 'undefined' && productNames[r.productId] ? productNames[r.productId] : r.productId %></span>
+                      <span class="review-admin-date"><%= new Date(r.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+                    </div>
+                    <div class="review-admin-author">
+                      <span class="review-admin-name"><%= r.name %></span>
+                      <% if (r.verifiedPurchase) { %><span class="review-verified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Verified</span><% } %>
+                      <% if (r.userEmail) { %><span class="review-admin-email"><%= r.userEmail %></span><% } %>
+                    </div>
+                    <div class="review-admin-rating" aria-label="<%= r.rating %> out of 5">
+                      <% for (let s = 1; s <= 5; s++) { %>
+                        <svg class="star <%= s <= r.rating ? 'filled' : '' %>" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 1.18 14.13 7 17.77 12 17.77 12 9.27 18.09 6.26 12 2z"/></svg>
+                      <% } %>
+                    </div>
+                    <p class="review-admin-text"><%= r.text %></p>
+                    <div class="review-admin-actions">
+                      <span class="review-admin-status status-<%= r.status %>"><%= r.status %></span>
+                      <button class="admin-btn review-approve" data-action="approve">Approve</button>
+                      <button class="admin-btn review-hide" data-action="hide">Hide</button>
+                      <button class="admin-btn review-delete" data-action="delete">Delete</button>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="reviews-admin-empty">
+                <p>No reviews for this product yet.</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </section>
+
 <script>
   const modal = document.getElementById('edit-product-modal');
   document.getElementById('edit-product-btn')?.addEventListener('click', () => modal.classList.add('open'));
@@ -304,4 +358,119 @@
   });
   // Handle image errors globally
   
+  // ── Review moderation (admin) ──────────────────────────────────
+  (function () {
+    const reviewsPanel = document.getElementById('reviews-panel');
+    if (!reviewsPanel) return;
+    const list = reviewsPanel.querySelector('.reviews-admin-list');
+    const empty = reviewsPanel.querySelector('.reviews-admin-empty');
+    const filterSel = reviewsPanel.querySelector('#reviews-filter-status');
+    const errorBox = reviewsPanel.querySelector('#reviews-admin-error');
+    const csrf = document.querySelector('input[name="_csrf"]')?.value || '';
+
+    let allReviews = [];
+
+    function productNameFor(id) {
+      return window._adminProductReviewNames && window._adminProductReviewNames[id] || id;
+    }
+
+    function render() {
+      const status = filterSel?.value || '';
+      const filtered = status
+        ? allReviews.filter(r => String(r.status) === status)
+        : allReviews;
+      if (!list) return;
+      if (!filtered.length) {
+        if (empty) empty.style.display = '';
+        list.innerHTML = '';
+        return;
+      }
+      if (empty) empty.style.display = 'none';
+      list.innerHTML = filtered.map(r => {
+        const pName = productNameFor(r.productId);
+        const date = new Date(r.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' });
+        const starHtml = Array.from({ length: 5 }, (_, s) =>
+          `<svg class="star ${s < r.rating ? 'filled' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 1.18 14.13 7 17.77 12 17.77 12 9.27 18.09 6.26 12 2z"/></svg>`
+        ).join('');
+        return `
+          <div class="review-admin-card" data-review-id="${r._id}">
+            <div class="review-admin-head">
+              <span class="review-admin-product">${pName}</span>
+              <span class="review-admin-date">${date}</span>
+            </div>
+            <div class="review-admin-author">
+              <span class="review-admin-name">${r.name}</span>
+              ${r.verifiedPurchase ? '<span class="review-verified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Verified</span>' : ''}
+              ${r.userEmail ? `<span class="review-admin-email">${r.userEmail}</span>` : ''}
+            </div>
+            <div class="review-admin-rating" aria-label="${r.rating} out of 5">${starHtml}</div>
+            <p class="review-admin-text">${r.text}</p>
+            <div class="review-admin-actions">
+              <span class="review-admin-status status-${r.status}">${r.status}</span>
+              <button class="admin-btn review-approve" data-action="approve">Approve</button>
+              <button class="admin-btn review-hide" data-action="hide">Hide</button>
+              <button class="admin-btn review-delete" data-action="delete">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setError(msg) {
+      if (errorBox) errorBox.textContent = msg || '';
+    }
+
+    function loadReviews() {
+      setError('');
+      fetch('/api/admin/reviews', { headers: { 'X-CSRF-Token': csrf } })
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok) {
+            allReviews = data.reviews || [];
+            if (data.productNames) window._adminProductReviewNames = data.productNames;
+            render();
+          } else {
+            setError(data.message || 'Could not load reviews.');
+          }
+        })
+        .catch(() => setError('Network error loading reviews.'));
+    }
+
+    filterSel?.addEventListener('change', loadReviews);
+
+    reviewsPanel.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn || !list) return;
+      const card = btn.closest('.review-admin-card');
+      const id = card?.dataset?.reviewId;
+      if (!id) return;
+      const action = btn.dataset.action;
+      setError('');
+      if (action === 'delete') {
+        if (!confirm('Delete this review permanently?')) return;
+      }
+      const status = action === 'approve' ? 'approved' : action === 'hide' ? 'hidden' : null;
+      try {
+        const r = await fetch(`/api/admin/reviews/${id}${status ? '/status' : ''}`, {
+          method: status ? 'PATCH' : 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrf
+          },
+          body: status ? JSON.stringify({ status }) : null
+        });
+        const data = await r.json();
+        if (r.ok && data.ok) {
+          showToast(action === 'delete' ? 'Review deleted.' : `Review ${status}.`, 'success');
+          loadReviews();
+        } else {
+          setError(data.message || 'Action failed.');
+        }
+      } catch {
+        setError('Network error.');
+      }
+    });
+
+    loadReviews();
+  })();
 </script>

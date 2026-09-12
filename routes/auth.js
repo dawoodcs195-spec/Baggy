@@ -2,7 +2,53 @@
 // routes/auth.js — Phase 2 split from server.js
 // Factory: register(app, d) — d is the shared dependency bundle from server.js.
 module.exports = function (app, d) {
-  const { User, sessionUser, getCsrfToken, authLimiter, passwordResetLimiter, isValidEmail, sanitizeText, validatePassword, ADMIN_EMAILS, logger } = d;
+  const { User, Wishlist, sessionUser, getCsrfToken, authLimiter, passwordResetLimiter, isValidEmail, sanitizeText, validatePassword, ADMIN_EMAILS, logger, email } = d;
+
+// ── Guest → account merge ───────────────────────────────────────
+// A signing-in visitor may have filled a cart/wishlist as a guest. Login
+// regenerates the session (session-fixation defence), which would silently
+// wipe that state — so it is captured before and restored after, and the
+// wishlist is folded into the account's saved one instead of being thrown away.
+function plainWishlist(items) {
+  return (items || []).map(i => ({
+    productId: i.productId,
+    name: i.name,
+    image: i.image,
+    price: i.price,
+    addedAt: i.addedAt
+  }));
+}
+
+async function mergeGuestWishlist(userEmail, guestItems) {
+  const guest = (guestItems || []).filter(i => i && i.productId);
+  let doc = await Wishlist.findOne({ email: userEmail });
+  if (!doc) {
+    if (!guest.length) return [];
+    doc = await new Wishlist({ email: userEmail, items: guest }).save();
+    return plainWishlist(doc.items);
+  }
+  const have = new Set((doc.items || []).map(i => i.productId));
+  const additions = guest.filter(i => !have.has(i.productId));
+  if (additions.length) {
+    doc.items.push(...additions);
+    await doc.save();
+  }
+  return plainWishlist(doc.items);
+}
+
+// Shared post-login session rebuild (used by login and register).
+async function adoptUserSession(req, user, guestCart, guestWishlist) {
+  req.session.user = sessionUser(user);
+  const cart = Array.isArray(guestCart) ? guestCart.filter(i => i && i.productId) : [];
+  req.session.cart = cart;
+  try {
+    req.session.wishlist = await mergeGuestWishlist(user.email, guestWishlist);
+  } catch (err) {
+    logger.error('Wishlist merge failed: %s', err.message);
+    req.session.wishlist = guestWishlist || [];
+  }
+  getCsrfToken(req);
+}
 
 app.get('/api/auth/session', (req, res) => {
   if (req.session.user) {
@@ -33,14 +79,15 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     if (req.body.phone) user.phone = sanitizeText(req.body.phone, 30);
     await user.setPassword(String(password));
     await user.save();
+    const guestCart = req.session.cart || [];
+    const guestWishlist = req.session.wishlist || [];
     // Regenerate session to prevent session fixation
-    req.session.regenerate(err => {
+    req.session.regenerate(async (err) => {
       if (err) return res.status(500).json({ ok: false, message: 'Session error' });
-      req.session.user = sessionUser(user);
-      getCsrfToken(req);
+      await adoptUserSession(req, user, guestCart, guestWishlist);
       req.session.save(err2 => {
         if (err2) return res.status(500).json({ ok: false, message: 'Session error' });
-        res.json({ ok: true, user: req.session.user, csrfToken: req.session.csrfToken });
+        res.json({ ok: true, user: req.session.user, csrfToken: req.session.csrfToken, wishlistCount: (req.session.wishlist || []).length });
       });
     });
   } catch (err) {
@@ -71,14 +118,16 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       return res.status(401).json({ ok: false, message: 'Incorrect email or password' });
     }
     await user.clearLockout();
+    // Keep whatever the guest collected, then fold the wishlist into the account.
+    const guestCart = req.session.cart || [];
+    const guestWishlist = req.session.wishlist || [];
     // Regenerate session to prevent session fixation
-    req.session.regenerate(err => {
+    req.session.regenerate(async (err) => {
       if (err) return res.status(500).json({ ok: false, message: 'Session error' });
-      req.session.user = sessionUser(user);
-      getCsrfToken(req);
+      await adoptUserSession(req, user, guestCart, guestWishlist);
       req.session.save(err2 => {
         if (err2) return res.status(500).json({ ok: false, message: 'Session error' });
-        res.json({ ok: true, user: req.session.user, csrfToken: req.session.csrfToken });
+        res.json({ ok: true, user: req.session.user, csrfToken: req.session.csrfToken, cartCount: req.session.cart.length, wishlistCount: (req.session.wishlist || []).length });
       });
     });
   } catch (err) {
@@ -102,18 +151,25 @@ app.post('/api/auth/logout', (req, res) => {
 // ── API: Password reset & change ───────────────────────────────
 // Step 1: request a reset token
 app.post('/api/auth/forgot-password', passwordResetLimiter, async (req, res) => {
-  const email = String(req.body.email || '').toLowerCase().trim();
-  if (!isValidEmail(email)) return res.status(400).json({ ok: false, message: 'Please enter a valid email address' });
+  // Named cleanEmail (not `email`) so the mailer service imported from `d`
+  // isn't shadowed by the customer's address string.
+  const cleanEmail = String(req.body.email || '').toLowerCase().trim();
+  if (!isValidEmail(cleanEmail)) return res.status(400).json({ ok: false, message: 'Please enter a valid email address' });
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: cleanEmail });
     // Always respond the same way so attackers can't discover which emails exist
     const generic = { ok: true, message: 'If an account exists for that email, a reset link has been generated.' };
     if (!user) return res.json(generic);
     const token = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
-    // No email provider is configured, so the reset link is shown for the user to copy.
-    // TODO: email this link instead of returning it once SMTP is set up.
-    res.json({ ...generic, resetUrl: `/reset-password?token=${token}&email=${encodeURIComponent(email)}` });
+    const resetUrl = `/reset-password?token=${token}&email=${encodeURIComponent(cleanEmail)}`;
+    // Emailed when RESEND_API_KEY is set; while it isn't, the link comes back in
+    // the response so the reset flow stays testable locally (never in production).
+    const delivered = email ? await email.sendPasswordReset(user, resetUrl) : { ok: false };
+    if (delivered.ok || process.env.NODE_ENV === 'production') {
+      return res.json({ ...generic, message: 'If an account exists for that email, a reset link has been sent.' });
+    }
+    res.json({ ...generic, resetUrl });
   } catch (err) {
     logger.error('Forgot-password error: %s', err.message);
     res.status(500).json({ ok: false, message: 'Could not process reset request' });

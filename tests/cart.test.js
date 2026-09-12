@@ -112,7 +112,9 @@ describe('Cart & Wishlist', () => {
     expect(res.body.wishlist).toHaveLength(1);
 
     res = await c.get('/api/wishlist');
-    expect(res.body).toHaveLength(1);
+    expect(res.status).toBe(200);
+    const list = Array.isArray(res.body.wishlist) ? res.body.wishlist : res.body;
+    expect(list).toHaveLength(1);
 
     res = await csrfPost(c, '/api/wishlist/toggle', { productId: 'test-jeans-001' });
     expect(res.status).toBe(200);

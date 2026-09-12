@@ -2,7 +2,7 @@
 // routes/admin.js — Phase 2 split from server.js
 // Factory: register(app, d) — d is the shared dependency bundle from server.js.
 module.exports = function (app, d) {
-  const { Product, Order, User, Settings, Coupon, Newsletter, Contact, renderPage, isAdmin, requireAdminApi, escapeRegex, sanitizeText, isValidEmail, parseBoolean, ORDER_STATUSES, trackingStepsFor, sessionUser, CLOUDINARY_PLACEHOLDER, productImageUpload, validateProductImages, verifyCsrf, uploadToCloudinary, logger } = d;
+  const { Product, Order, User, Settings, Coupon, Newsletter, Contact, OrderMessage, Review, renderPage, isAdmin, requireAdminApi, escapeRegex, sanitizeText, isValidEmail, parseBoolean, ORDER_STATUSES, trackingStepsFor, sessionUser, CLOUDINARY_PLACEHOLDER, productImageUpload, validateProductImages, verifyCsrf, uploadToCloudinary, logger, email } = d;
 
 // Enable/disable a coupon without deleting it.
 // ── Admin Routes ────────────────────────────────────────────────
@@ -214,11 +214,15 @@ app.get('/admin/product/:id', async (req, res) => {
   try {
     const product = await Product.findOne({ id: req.params.id }).lean();
     if (!product) return res.status(404).render('404', { year: new Date().getFullYear() });
+    const reviews = await Review.find({ productId: req.params.id }).sort({ createdAt: -1 }).lean();
+    const productNames = { [req.params.id]: product.name };
     renderPage(req, res, 'admin-product-detail', {
       activePage: 'admin',
       pageTitle: product.name + ' — Admin',
       user: req.session.user,
-      product
+      product,
+      reviews,
+      productNames
     });
   } catch {
     res.status(404).render('404', { year: new Date().getFullYear() });
@@ -253,9 +257,15 @@ app.post('/admin/order/:id/status', async (req, res) => {
     const order = await Order.findOne({ orderId: req.params.id });
     if (!order) return res.status(404).json({ ok: false, message: 'Order not found' });
     const wasCancelled = order.status !== 'cancelled';
+    const previousStatus = order.status;
     order.status = status;
     order.trackingSteps = trackingStepsFor(status, order.createdAt);
     await order.save();
+    // Tell the customer, but only on a real change (the admin UI can re-post the
+    // same status). Fire-and-forget: email trouble never fails the update.
+    if (email && previousStatus !== status) {
+      email.sendOrderStatus(order.toObject(), status).catch(() => {});
+    }
     // Restock items when an order is cancelled. A cancelled order stays cancelled,
     // so stock cannot be credited twice through repeated status updates.
     if (status === 'cancelled' && wasCancelled) {
@@ -679,7 +689,21 @@ app.put('/api/admin/product/:id', requireAdminApi, productImageUpload.array('ima
       set.images = finalImages.length > 0 ? finalImages : [CLOUDINARY_PLACEHOLDER];
     }
     const updated = await Product.findOneAndUpdate({ id }, { $set: set }, { new: true }).lean();
-    res.json({ ok: true, product: updated });
+    // If the admin touched rating/stock directly, recompute from reviewed data where
+    // sensible — but never overwrite a manually-set rating with a recompute when the
+    // product has no reviews (keep the existing value).
+    if (set.rating === undefined && updated.reviewCount > 0) {
+      try {
+        const agg = await Review.aggregate([
+          { $match: { productId: id, status: 'approved' } },
+          { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } }
+        ]);
+        if (agg.length) {
+          await Product.findOneAndUpdate({ id }, { $set: { rating: Math.round((agg[0].avg || 0) * 10) / 10 } });
+        }
+      } catch (err) { logger.warn('Review rating recompute on save failed: %s', err.message); }
+    }
+    res.json({ ok: true, product: await Product.findOne({ id }).lean() });
   } catch (err) {
     logger.error('Product update error: %s', err.message);
     res.status(500).json({ ok: false, message: 'Failed to update product' });
@@ -711,6 +735,72 @@ app.get('/api/admin/stock/alerts', async (req, res) => {
     res.status(500).json({ ok: false, message: 'Failed to load stock alerts' });
   }
 });
+
+// ── Review moderation (admin) ──────────────────────────────────
+app.get('/api/admin/reviews', requireAdminApi, async (req, res) => {
+  try {
+    let { status, productId } = req.query;
+    const query = {};
+    if (status) query.status = status;
+    if (productId) query.productId = productId;
+    const reviews = await Review.find(query).sort({ createdAt: -1 }).lean();
+    const productMap = {};
+    for (const r of reviews) {
+      if (!productMap[r.productId]) {
+        const p = await Product.findOne({ id: r.productId }).lean();
+        productMap[r.productId] = p ? p.name : r.productId;
+      }
+    }
+    res.json({ ok: true, reviews, productNames: productMap });
+  } catch (err) {
+    logger.error('Review list error: %s', err.message);
+    res.status(500).json({ ok: false, message: 'Failed to load reviews' });
+  }
+});
+
+app.patch('/api/admin/reviews/:id/status', requireAdminApi, async (req, res) => {
+  const { status } = req.body || {};
+  if (!['approved', 'hidden'].includes(status)) {
+    return res.status(400).json({ ok: false, message: 'Status must be approved or hidden.' });
+  }
+  try {
+    const review = await Review.findById(req.params.id);
+    if (!review) return res.status(404).json({ ok: false, message: 'Review not found' });
+    review.status = status;
+    await review.save();
+    await recomputeProductRating(review.productId);
+    res.json({ ok: true, review: review.toObject() });
+  } catch (err) {
+    logger.error('Review status error: %s', err.message);
+    res.status(500).json({ ok: false, message: 'Failed to update review' });
+  }
+});
+
+app.delete('/api/admin/reviews/:id', requireAdminApi, async (req, res) => {
+  try {
+    const review = await Review.findByIdAndDelete(req.params.id);
+    if (!review) return res.status(404).json({ ok: false, message: 'Review not found' });
+    await recomputeProductRating(review.productId);
+    res.json({ ok: true, message: 'Review deleted' });
+  } catch (err) {
+    logger.error('Review delete error: %s', err.message);
+    res.status(500).json({ ok: false, message: 'Failed to delete review' });
+  }
+});
+
+function recomputeProductRating(productId) {
+  return Review.aggregate([
+    { $match: { productId, status: 'approved' } },
+    { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } }
+  ]).then(agg => {
+    if (!agg.length) return null;
+    return Product.findOneAndUpdate(
+      { id: productId },
+      { $set: { rating: Math.round((agg[0].avg || 0) * 10) / 10, reviewCount: agg[0].count } },
+      { setDefaultsOnInsert: false }
+    );
+  });
+}
 
 app.patch('/api/admin/product/:id/stock', async (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ ok: false });

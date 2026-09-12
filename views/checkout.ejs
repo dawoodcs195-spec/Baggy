@@ -15,6 +15,9 @@
         <a href="/shop" class="btn btn-primary">Continue Shopping</a>
       </div>
     <% } else { %>
+      <% if (typeof paymentCancelled !== 'undefined' && paymentCancelled) { %>
+        <div class="checkout-notice" role="status">Card payment was cancelled — nothing was charged. You can try again below.</div>
+      <% } %>
       <form id="checkout-form" class="checkout-layout" autocomplete="on">
         <!-- Left: shipping details -->
         <div class="checkout-form" data-reveal>
@@ -60,11 +63,13 @@
               <span>Bank Transfer</span>
               <small>Direct deposit</small>
             </label>
-            <label class="payment-option">
-              <input type="radio" name="payment-method" value="card" />
-              <span>Card</span>
-              <small>Credit / debit</small>
-            </label>
+            <% if (typeof cardPaymentsEnabled !== 'undefined' && cardPaymentsEnabled) { %>
+              <label class="payment-option">
+                <input type="radio" name="payment-method" value="card" />
+                <span>Card</span>
+                <small>Secure checkout</small>
+              </label>
+            <% } %>
           </div>
 
           <div class="order-notes" style="margin-top:var(--space-4);">

@@ -1,0 +1,21 @@
+{
+  "name": "BA GGY — Fashion That Moves With You",
+  "short_name": "BA GGY",
+  "description": "Baggy jeans, oversized tees, accessories and uppers. Fashion that moves with you.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf7f0",
+  "theme_color": "#0a0a0a",
+  "lang": "en-PK",
+  "icons": [
+    {
+      "src": "/public/images/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"]
+}

@@ -19,6 +19,12 @@ const messageSchema = new mongoose.Schema({
   message: { type: String, required: true }
 }, { timestamps: true });
 
+// Indexes: the admin inbox and newsletter views sort by date; contacts filter by status.
+contactSchema.index({ createdAt: -1 });
+contactSchema.index({ status: 1, createdAt: -1 });
+newsletterSchema.index({ createdAt: -1 });
+messageSchema.index({ orderId: 1, createdAt: 1 });
+
 module.exports = {
   Contact:     mongoose.model('Contact', contactSchema),
   Newsletter:  mongoose.model('Newsletter', newsletterSchema),

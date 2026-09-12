@@ -41,14 +41,17 @@ function baseVars() {
   };
 }
 
+// Shared empty page of catalog results — mirrors services/productRepo.listCatalog().
+const catalogStub = { products: [], total: 0, page: 1, pages: 1, perPage: 24, from: 0, to: 0, hasPrev: false, hasNext: false };
+
 const user = { id: 'u1', name: 'Smoke User', email: 'smoke@baggy.pk', role: 'admin' };
 
 const routeData = {
   index: { activePage: 'home', featuredProducts: [] },
-  shop: { activePage: 'shop', pageTitle: 'Shop All — BA GGY', products: [], displayProducts: [], category: '', categories: [] },
+  shop: { activePage: 'shop', pageTitle: 'Shop All — BA GGY', products: [], displayProducts: [], filtered: [], category: '', categories: [], sort: 'featured', query: null, catalog: catalogStub },
   jeans: { activePage: 'shop', pageTitle: 'Jeans — BA GGY', products: [], filtered: [], categories: [] },
   shirts: { activePage: 'shop', pageTitle: 'Shirts — BA GGY', products: [], filtered: [], categories: [] },
-  product: { activePage: 'product', product: { id: 'x', name: 'Smoke Product', price: 1000, images: [], sizes: ['M'], details: ['Detail one'], colors: ['Black'], description: '', category: 'jeans', subcategory: 'baggy' }, products: [], pageTitle: 'Product — BA GGY' },
+  product: { activePage: 'product', product: { id: 'x', name: 'Smoke Product', price: 1000, images: [], sizes: ['M'], details: ['Detail one'], colors: ['Black'], description: '', category: 'jeans', subcategory: 'baggy', rating: 0, reviewCount: 0, reviews: [] }, products: [], pageTitle: 'Product — BA GGY', user: user },
   cart: { activePage: 'cart', pageTitle: 'Your Cart — BA GGY' },
   checkout: { activePage: 'checkout', pageTitle: 'Checkout — BA GGY' },
   'checkout-success': { activePage: 'checkout', pageTitle: 'Order Confirmed — BA GGY', order: null, showOrderDetails: false },
@@ -65,14 +68,14 @@ const routeData = {
   register: { activePage: 'account', pageTitle: 'Create Account — BA GGY' },
   account: { activePage: 'account', pageTitle: 'My Account — BA GGY', orders: [] },
   newsletter: { activePage: 'newsletter', pageTitle: 'Newsletter — BA GGY' },
-  search: { activePage: 'shop', pageTitle: 'Search — BA GGY', products: [], query: null, categoryFilter: null },
+  search: { activePage: 'shop', pageTitle: 'Search — BA GGY', products: [], query: null, categoryFilter: null, sort: 'featured', catalog: catalogStub },
   order: { activePage: 'order', order: { orderId: 'BG-SMOKE', items: [], customer: { name: 'x', email: 'x@x.com', phone: 'x', address: 'x' }, subtotal: 0, discount: 0, couponCode: null, shipping: 0, total: 0, payment: 'cod', status: 'confirmed', trackingSteps: [] }, pageTitle: 'Order — BA GGY' },
   '404': {},
   'admin-index': { activePage: 'admin', pageTitle: 'Admin — BA GGY', user, totalOrders: 0, totalProducts: 0, newsletterToday: 0, totalRevenue: 0, deliveredOrders: 0, shippedOrders: 0, processingOrders: 0, confirmedOrders: 0, pendingOrders: 0, cancelledOrders: 0, recentOrders: [], topProducts: [], totalCoupons: 0, activeCoupons: 0, couponAnalytics: { ordersWithCoupon: 0, totalDiscount: 0, influencedRevenue: 0, top: [] } },
   'admin-orders': { activePage: 'admin', pageTitle: 'Orders — Admin', user, orders: [], page: 1, totalPages: 0, total: 0, statusFilter: '' },
   'admin-products': { activePage: 'admin', pageTitle: 'Products — Admin', user, products: [], page: 1, totalPages: 0, total: 0, totalProducts: 0 },
   'admin-inventory': { activePage: 'admin', pageTitle: 'Inventory — Admin', user, products: [], lowStockProducts: [], totalProducts: 0, totalOrders: 0 },
-  'admin-product-detail': { activePage: 'admin', pageTitle: 'Product — Admin', user, product: { id: 'x', name: 'Smoke Product', price: 1000, images: [], sizes: ['M'], stock: 5, category: 'jeans', subcategory: 'baggy', stockHistory: [] } },
+  'admin-product-detail': { activePage: 'admin', pageTitle: 'Product — Admin', user, product: { id: 'x', name: 'Smoke Product', price: 1000, images: [], sizes: ['M'], stock: 5, category: 'jeans', subcategory: 'baggy', stockHistory: [] }, reviews: [], productNames: {} },
   'admin-order-detail': { activePage: 'admin', pageTitle: 'Order — Admin', user, order: { orderId: 'BG-SMOKE', items: [], customer: { name: 'x', email: 'x@x.com', phone: 'x', address: 'x' }, subtotal: 0, discount: 0, couponCode: null, shipping: 0, total: 0, payment: 'cod', status: 'confirmed', trackingSteps: [] }, csrfToken: 'smoke-csrf' },
   'admin-newsletter': { activePage: 'admin', pageTitle: 'Newsletter — Admin', user, subscribers: [], page: 1, totalPages: 0, total: 0, totalSubscribers: 0, todaySubscribers: 0, weekSubscribers: 0 },
   'admin-users': { activePage: 'admin', pageTitle: 'Users — Admin', user, users: [], ordersByUser: {}, page: 1, totalPages: 0, totalUsers: 0 },
