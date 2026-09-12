@@ -1,75 +1,89 @@
-# Baggy Jeans Shop
+# BA GGY — Premium E-commerce
 
-A premium full-stack e-commerce website for baggy jeans and oversized shirts, featuring heavy animations, modern design, and secure checkout.
+A full-stack e-commerce platform for baggy jeans, oversized tees, accessories and uppers. Denim-heavy, editorial design, MongoDB-backed with a JSON fallback for offline dev.
 
-## Features
+## Quick Start
 
-- **Heavy Animations**: GSAP-powered scroll animations, text splits, parallax effects
-- **Premium Design**: Minimalist black/white/cream aesthetic inspired by luxury fashion brands
-- **Full Product Catalog**: 7 products (4 baggy jeans, 3 oversized shirts)
-- **Shopping Cart**: Real-time cart updates with add/remove/update quantity
-- **Secure Checkout**: Form validation, payment method selection, order confirmation
-- **Responsive Design**: Works on mobile, tablet, and desktop
-- **Security Middleware**: Helmet, rate limiting, CORS, input sanitization
+```bash
+npm install
+cp .env.example .env      # then edit .env with your values
+npm start                 # → http://localhost:3000
+```
 
-## Tech Stack
+MongoDB must be running locally (or set `MONGO_URI`). Without Mongo the app boots in JSON-file fallback mode so the storefront still works.
 
-- **Backend**: Node.js v24, Express.js
-- **Frontend**: EJS templating, vanilla JS, CSS3
-- **Animation**: GSAP (GreenSock Animation Platform)
-- **Security**: Helmet, Express Rate Limit, CSRF protection
-- **Styling**: Custom CSS with CSS variables
+## Environment Variables
 
-## Setup
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `MONGO_URI` | prod only | Falls back to `mongodb://localhost:27017/baggy` in dev |
+| `SESSION_SECRET` | prod only | Min 32 chars; dev gets a random value |
+| `ADMIN_EMAILS` | prod only | Comma-separated admin email addresses |
+| `ADMIN_PASSWORD` | prod only | Min 8 chars; dev gets a random value |
+| `CLOUDINARY_*` | no | Image uploads; falls back to local `/public/images` |
+| `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY` | no | Enables card payments; without them only COD/JazzCash/EasyPaisa show |
+| `RESEND_API_KEY` | no | Enables transactional email; without it emails are logged to the console |
+| `EMAIL_FROM` | no | Verified sender for Resend (default: `onboarding@resend.dev`) |
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+## Scripts
 
-2. Start the server:
-   ```bash
-   npm start
-   ```
-
-3. Visit: http://localhost:3000
+| Command | What it does |
+|---------|--------------|
+| `npm start` | Boot the server |
+| `npm test` | Run the Vitest suite (48 integration tests) |
+| `npm run check` | Phase 1 + 2 unit checks (30 assertions) |
+| `npm run audit` | Security audit (28 checks, incl. live header/cookie probe) |
+| `npm run smoke` | Render every template to catch crashes (35 templates) |
+| `npm run load` | Load-test home/shop/search (autocannon, 50 conn) |
+| `npm run load:api` | Load-test search API + checkout page |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier |
+| `npm run seed` | Seed products from `seeds/productSeed.js` |
+| `npm run seed:coupons` | Seed test coupons |
 
 ## Project Structure
 
 ```
-site/
-├── public/          # Static assets
-│   ├── css/         # Stylesheets
-│   ├── js/          # JavaScript
-│   └── images/      # Product images
-├── views/           # EJS templates
-├── data/            # Product data (JSON)
-├── routes/          # API routes
-├── server.js        # Main Express server
-└── package.json     # Dependencies and scripts
+abc/
+├── config/          # env validation, DB connection
+├── middleware/      # csrf, auth, errors, rate-limiters
+├── models/          # Mongoose models (Product, Order, User, Review, …)
+├── routes/          # storefront, api, cart, checkout, auth, admin, order-chat
+├── services/        # productRepo, logger, email, stripe, cloudinary
+├── utils/           # sanitize, helpers, password
+├── scripts/         # audit, smoke, check, load-test, seed
+├── tests/           # Vitest + Supertest integration tests
+├── views/           # EJS templates (40 pages)
+├── public/          # css, js, images, manifest, service worker
+├── server.js        # app bootstrap (env → DB → sessions → routes)
+├── seeds/           # product + coupon seed data
+├── Dockerfile       # production image
+├── docker-compose.yml
+└── .github/workflows/ci.yml
 ```
 
-## Product Catalog
+## Features
 
-- **Jeans**: A (Washed Indigo), B (Midnight Black), C (Light Blue Acid-Wash), D (Medium Blue Washed)
-- **Shirts**: E (Acid-Wash Navy), F (Acid-Wash Burgundy), G (Acid-Wash Black)
+- **Storefront**: home, shop, category pages, product detail, search (MongoDB text index + regex fallback), wishlist
+- **Cart & Checkout**: session cart, coupon validation, atomic stock decrement, COD / card / JazzCash / EasyPaisa / bank transfer
+- **Payments**: Stripe Checkout (hosted) when keys are present; manual-confirm flows otherwise
+- **Auth**: register, login, logout, password reset (token emailed), account lockout after 5 failed attempts, session store in MongoDB
+- **Admin**: dashboard, order management, product CRUD (Cloudinary uploads), coupon management, customer contacts, newsletter, user management, order chat
+- **Reviews**: star ratings, verified-purchase flag, live rating aggregation
+- **Order Chat**: per-order messaging between customer and admin, email notification on admin reply
+- **Email**: order confirmation, password reset, order-status updates, newsletter welcome, contact auto-reply (Resend API; degrades to console logging without a key)
+- **SEO**: meta/OG tags, JSON-LD Organization, sitemap.xml, robots.txt, canonical URLs
+- **PWA**: installable manifest + offline service worker (network-first pages, stale-while-revalidate assets)
+- **Dark mode**: toggle in header, persisted to localStorage, respects system preference
+- **Mobile**: bottom navigation bar ≤768px, sticky add-to-cart bar on product page
+- **Accessibility**: skip link, focus-visible rings, aria-live regions, reduced-motion support
+- **Security**: Helmet CSP, CSRF tokens, per-route rate limits, account lockout, input sanitization, fail-fast prod config
+- **Performance**: gzip compression, ETags, DB indexes, deferred JS, font-display swap, hero preload
 
-All products feature realistic pricing, detailed descriptions, multiple images, and size options.
+## CI
 
-## Security Features
+GitHub Actions runs lint → test → audit on every push to `main`.
 
-- Helmet.js for HTTP header security
-- Rate limiting to prevent abuse
-- Input validation and sanitization
-- CORS configuration
-- Secure password handling (for future auth implementation)
+## License
 
-## Customization
-
-- Modify products in `data/products.json`
-- Adjust styles in `public/css/main.css`
-- Update animations in `public/js/main.js`
-- Add new routes in `server.js`
-
----
-Built with ❤️ for premium streetwear fashion.
+ISC

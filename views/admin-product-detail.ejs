@@ -330,14 +330,11 @@
     existingInputs.forEach(input => formData.append('existingImages', input.value));
 
     try {
-      console.log('Sending PUT request...');
       const res = await fetch('/api/admin/product/<%= product.id %>', {
         method: 'PUT',
         body: formData
       });
-      console.log('Response status:', res.status);
       const data = await res.json();
-      console.log('Response data:', data);
       if (res.ok) {
         showToast('Product updated!', 'success');
         setTimeout(() => location.reload(), 500);

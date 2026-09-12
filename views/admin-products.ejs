@@ -542,8 +542,6 @@
       });
 
       const data = await res.json();
-      console.log('Response data:', data);
-
       if (data.ok) {
         showToast(editId ? 'Product updated!' : 'Product added!', 'success');
         productModal.classList.remove('open');
