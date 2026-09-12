@@ -50,7 +50,7 @@
           <%= order.customer.address %><br />
           <%= order.customer.email %> • <%= order.customer.phone %></p>
           <div class="payment-badge">
-            <% const paymentLabels = { cod: 'Cash on Delivery', jazzcash: 'JazzCash', card: 'Credit / Debit Card', easypaisa: 'EasyPaisa' }; %>
+            <% const paymentLabels = { cod: 'Cash on Delivery', card: 'Credit / Debit Card' }; %>
             <%= paymentLabels[order.payment] || order.payment %>
           </div>
         </div>

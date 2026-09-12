@@ -36,7 +36,7 @@ app.post('/api/checkout', checkoutLimiter, async (req, res) => {
     return res.status(400).json({ ok: false, message: 'Please fill in all required fields' });
   }
   if (!isValidEmail(email)) return res.status(400).json({ ok: false, message: 'Please enter a valid email address' });
-  if (!['cod', 'card', 'jazzcash', 'easypaisa', 'bank'].includes(payment)) {
+  if (!['cod', 'card'].includes(payment)) {
     return res.status(400).json({ ok: false, message: 'Invalid payment method' });
   }
   const sanitize = s => sanitizeText(s, 500);

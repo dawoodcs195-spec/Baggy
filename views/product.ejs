@@ -15,8 +15,14 @@
           <% (product.images || []).forEach((img, i) => { %>
             <img src="<%= imgUrl(img) %>" alt="<%= product.name %> view <%= i + 1 %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" loading="lazy" data-index="<%= i %>" />
           <% }) %>
+          <% if ((product.images || []).length > 1) { %>
+          <div class="gallery-thumbs">
+            <% (product.images || []).forEach((img, i) => { %>
+              <img src="<%= imgUrl(img) %>" alt="<%= product.name %> view <%= i + 1 %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" loading="lazy" data-index="<%= i %>" />
+            <% }) %>
+          </div>
+          <% } %>
         </div>
-      </div>
 
       <div class="product-info" data-reveal>
         <p class="product-category"><%= product.category === 'jeans' ? 'Baggy Jeans' : product.category === 'shirts' ? 'Oversized Tee' : product.category === 'uppers' ? 'Uppers' : product.category === 'accessories' ? 'Accessory' : product.category %></p>
@@ -140,7 +146,7 @@
                     </div>
                     <div class="review-rating" aria-label="<%= r.rating %> out of 5">
                       <% for (let s = 1; s <= 5; s++) { %>
-                        <svg class="star <%= s <= r.rating ? 'filled' : '' %>" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 1.18 14.13 7 17.77 12 17.77 12 9.27 18.09 6.26 12 2z"/></svg>
+                        <svg class="star <%= s <= r.rating ? 'filled' : '' %>" viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                       <% } %>
                     </div>
                   </div>
@@ -176,7 +182,7 @@
                 <div class="star-picker" role="radiogroup" aria-label="Rating">
                   <% for (let s = 1; s <= 5; s++) { %>
                     <button type="button" class="star-option <%= s === 1 ? 'selected' : '' %>" data-value="<%= s %>" aria-label="<%= s %> star<%= s === 1 ? '' : 's' %>" role="radio" aria-checked="<%= s === 1 ? 'true' : 'false' %>">
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 1.18 14.13 7 17.77 12 17.77 12 9.27 18.09 6.26 12 2z"/></svg>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     </button>
                   <% } %>
                 </div>

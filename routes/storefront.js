@@ -2,7 +2,7 @@
 // routes/storefront.js — Phase 2 split from server.js
 // Factory: register(app, d) — d is the shared dependency bundle from server.js.
 module.exports = function (app, d) {
-  const { Product, Order, User, Review, renderPage, getDistinctCategories, isAdmin, productRepo, stripe, imgUrl, logger } = d;
+  const { Product, Order, User, Review, renderPage, getDistinctCategories, isAdmin, productRepo, stripe, imgUrl, logger, sanitizeText } = d;
 
 // ── Routes ───────────────────────────────────────────────────────
 // Storefront reads go through services/productRepo.js (Mongo with products.json

@@ -48,21 +48,6 @@
               <span>Cash on Delivery</span>
               <small>Pay when it arrives</small>
             </label>
-            <label class="payment-option">
-              <input type="radio" name="payment-method" value="jazzcash" />
-              <span>JazzCash</span>
-              <small>Mobile wallet</small>
-            </label>
-            <label class="payment-option">
-              <input type="radio" name="payment-method" value="easypaisa" />
-              <span>Easypaisa</span>
-              <small>Mobile wallet</small>
-            </label>
-            <label class="payment-option">
-              <input type="radio" name="payment-method" value="bank" />
-              <span>Bank Transfer</span>
-              <small>Direct deposit</small>
-            </label>
             <% if (typeof cardPaymentsEnabled !== 'undefined' && cardPaymentsEnabled) { %>
               <label class="payment-option">
                 <input type="radio" name="payment-method" value="card" />

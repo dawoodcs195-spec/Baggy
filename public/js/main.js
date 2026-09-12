@@ -12,6 +12,8 @@
 
   // ─── 0. CSRF: auto-attach token to every fetch ────────────────
   const CSRF_TOKEN = document.body?.dataset.csrf || '';
+  // Signed-in flag from the server-rendered body (syncs wishlist toggles to the server).
+  const reqUser = document.body?.dataset?.userEmail || '';
   const _origFetch = window.fetch;
   window.fetch = function (input, init = {}) {
     const method = (init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
@@ -655,15 +657,15 @@
 
     // Gallery thumbs
     const mainImg = $('#main-img');
-    $$('.thumb').forEach((thumb) => {
+    $$('.gallery-thumb, .thumb').forEach((thumb) => {
       thumb.addEventListener('click', () => {
-        $$('.thumb').forEach((t) => t.classList.remove('active'));
+        $$('.gallery-thumb, .thumb').forEach((t) => t.classList.remove('active'));
         thumb.classList.add('active');
         if (mainImg) {
           mainImg.style.transition = 'opacity 0.2s ease';
           mainImg.style.opacity = '0';
           setTimeout(() => {
-            mainImg.src = imgUrlFor(thumb.dataset.img);
+            mainImg.src = thumb.dataset.img || thumb.src;
             mainImg.style.opacity = '1';
           }, 200);
         }
@@ -982,7 +984,11 @@
   // (cancel button, overlay click, Escape key)
   if (confirmModal) {
     new MutationObserver(() => {
-      if (confirmState && !confirmModal.classList.contains('open')) {
+      // Only treat a dismissal as unconfirmed once the modal is FULLY hidden.
+      // ('hidden' is removed before 'open' is added on the next rAF, so checking
+      // for a missing 'open' used to null the pending state mid-OPEN — the modal
+      // opened fine but Confirm became a dead button: no fetch, no clear.)
+      if (confirmState && confirmModal.classList.contains('hidden')) {
         const st = confirmState;
         confirmState = null;
         st.resolve(false);
@@ -1157,7 +1163,7 @@
                 <span class="track-item-price">₨${Number(item.price * item.qty).toLocaleString('en-PK')}</span>
               </div>
             `).join('');
-            const payLabels = { cod: 'Cash on Delivery', card: 'Card', jazzcash: 'JazzCash', easypaisa: 'Easypaisa', bank: 'Bank Transfer' };
+            const payLabels = { cod: 'Cash on Delivery', card: 'Credit / Debit Card' };
             const summary = `
               <div class="track-summary">
                 <div><span>Subtotal</span><span>₨${Number(o.subtotal || 0).toLocaleString('en-PK')}</span></div>
@@ -1237,13 +1243,17 @@
     });
   });
 
-  // ─── 14k. Wishlist ───────────────────────────────────────────
+  // ─── 14k. Wishlist page rendering (guest fallback) ───────────
+  // Signed-in users get proper server-rendered .wishlist-item cards (EJS);
+  // renderWishlist is a no-op then. It only renders from localStorage when the
+  // server list is empty (guests whose session wishlist never got synced).
   const wishlistGrid = $('#wishlist-grid');
   const wishlistEmpty = $('#wishlist-empty');
   const wishlistItems = JSON.parse(localStorage.getItem('baggy_wishlist') || '[]');
 
   function renderWishlist() {
     if (!wishlistGrid) return;
+    if (wishlistGrid.querySelector('.wishlist-item')) return; // server-rendered list wins
     if (wishlistItems.length === 0) {
       if (wishlistGrid) wishlistGrid.classList.add('hidden');
       if (wishlistEmpty) wishlistEmpty.classList.remove('hidden');
@@ -1251,25 +1261,26 @@
     }
     if (wishlistEmpty) wishlistEmpty.classList.add('hidden');
     wishlistGrid.classList.remove('hidden');
+    // Same structure as the EJS cards so the actions (top-right) match.
     wishlistGrid.innerHTML = wishlistItems.map((id) => `
-      <div class="product-card" data-product-id="${id}" style="cursor:pointer;">
-        <a href="/product/${id}" class="product-card-link"></a>
-        <div class="product-image-wrapper">
-          <div class="product-badge">Saved</div>
-          <button class="action-btn wishlist-toggle active" data-id="${id}" aria-label="Remove from wishlist">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="var(--color-accent)" stroke="var(--color-accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          </button>
-        </div>
-        <div class="product-info">
-          <p class="product-name">Loading...</p>
-          <div class="product-price">
-            <span class="price-current">—</span>
+      <div class="wishlist-item" data-product-id="${id}">
+        <div class="wishlist-item-img-wrap">
+          <img class="wishlist-item-img" src="/public/images/placeholder.png" alt="" />
+          <div class="wishlist-item-actions">
+            <button class="action-btn wishlist-item-remove" data-product-id="${id}" aria-label="Remove from wishlist">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
           </div>
+        </div>
+        <div class="wishlist-item-info">
+          <h3>Loading…</h3>
+          <p class="wishlist-item-price">—</p>
+          <button class="wishlist-item-add-cart wishlist-item-add-cart-btn" data-product-id="${id}">Add to Cart</button>
         </div>
       </div>
     `).join('');
 
-    // Load product data
+    // Load product details
     wishlistItems.forEach(async (id) => {
       try {
         const res = await fetch(`/api/product/${id}`);
@@ -1277,40 +1288,58 @@
         const p = await res.json();
         const card = wishlistGrid.querySelector(`[data-product-id="${id}"]`);
         if (!card) return;
-        const wrapper = card.querySelector('.product-image-wrapper');
-        if (wrapper) {
-          const imgUrl = imgUrlFor(p.images && p.images[0]);
-          wrapper.style.backgroundImage = `url(${imgUrl})`;
-          wrapper.style.backgroundSize = 'cover';
-          wrapper.style.backgroundPosition = 'center';
-          wrapper.style.minHeight = '300px';
-        }
-        if (card.querySelector('.product-name')) card.querySelector('.product-name').textContent = p.name;
-        if (card.querySelector('.price-current')) card.querySelector('.price-current').textContent = '₨' + Number(p.price).toLocaleString('en-PK');
+        const img = card.querySelector('.wishlist-item-img');
+        if (img) img.src = imgUrlFor(p.images && p.images[0]);
+        const h = card.querySelector('h3'); if (h) h.textContent = p.name;
+        const pr = card.querySelector('.wishlist-item-price'); if (pr) pr.textContent = '₨' + Number(p.price).toLocaleString('en-PK');
       } catch {}
     });
 
-    // Toggle wishlist
-    wishlistGrid.querySelectorAll('.wishlist-toggle').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+    // Remove → sync BOTH localStorage and the server session, then re-render
+    wishlistGrid.querySelectorAll('.wishlist-item-remove').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const idx = wishlistItems.indexOf(btn.dataset.id);
-        if (idx > -1) { wishlistItems.splice(idx, 1); localStorage.setItem('baggy_wishlist', JSON.stringify(wishlistItems)); }
-        renderWishlist();
+        const id = btn.dataset.productId;
+        const idx = wishlistItems.indexOf(id);
+        if (idx > -1) {
+          wishlistItems.splice(idx, 1);
+          try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlistItems)); } catch {}
+        }
+        paintWishlistBadge();
+        try {
+          await fetch('/api/wishlist/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: id })
+          });
+        } catch {}
         showToast('Removed from wishlist');
+        btn.closest('.wishlist-item')?.remove();
+        if (wishlistItems.length === 0) renderWishlist();
+      });
+    });
+
+    // Add to cart (needs a size; default to the product's first size)
+    wishlistGrid.querySelectorAll('.wishlist-item-add-cart-btn').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = btn.dataset.productId;
+        let size = 'M';
+        try {
+          const p = await (await fetch(`/api/product/${id}`)).json();
+          size = (p.sizes && p.sizes[0]) || 'M';
+        } catch {}
+        const ok = await addToCart(id, size, 1);
+        showToast(ok ? 'Added to cart' : 'Could not add to cart', ok ? 'success' : 'error');
       });
     });
   }
 
   if (wishlistGrid) {
-    renderWishlist();
-    // Update wishlist badge in header
-    const wishBadge = document.querySelector('.wishlist-btn .badge');
-    if (wishBadge) {
-      wishBadge.textContent = wishlistItems.length;
-      wishBadge.classList.toggle('hidden', wishlistItems.length === 0);
-    }
+    renderWishlist(); // no-op when the server already rendered items
+    paintWishlistBadge();
   }
 
   // (Global wishlist toggle handled above at section 10)
@@ -2242,8 +2271,9 @@
         el.setAttribute('aria-checked', on ? 'true' : 'false');
         const svg = el.querySelector('svg');
         if (svg) {
-          svg.style.fill = on ? 'var(--color-accent)' : 'none';
-          svg.style.stroke = on ? 'var(--color-accent)' : 'currentColor';
+          // Amber to match the product-page rating stars (accent crimson read as "error").
+          svg.style.fill = on ? '#d97706' : 'none';
+          svg.style.stroke = on ? '#d97706' : 'currentColor';
         }
       });
       if (ratingInput) ratingInput.value = chosenRating;
@@ -2266,7 +2296,9 @@
     paintStars();
 
     function csrfToken() {
-      return document.querySelector('input[name="_csrf"]')?.value
+      // The token is embedded on <body data-csrf> (matches the global fetch
+      // wrapper). The old input/meta lookups found nothing → empty header → 403.
+      return document.body?.dataset?.csrf
         || document.querySelector('meta[name="csrf-token"]')?.content
         || '';
     }

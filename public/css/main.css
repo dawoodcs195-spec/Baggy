@@ -448,7 +448,7 @@ textarea:focus-visible,
 [data-theme="dark"] .reviews-form-wrap { background: var(--color-gray-50); }
 .reviews-form-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; margin-bottom: var(--space-5); }
 .star-picker { display: flex; gap: var(--space-2); }
-.star-option { background: none; border: none; cursor: pointer; padding: 2px; color: var(--color-gray-300); transition: color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-spring); }
+.star-option { background: none; border: none; cursor: pointer; padding: 2px; color: var(--color-gray-400); transition: color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-spring); }
 .star-option svg { width: 28px; height: 28px; fill: currentColor; }
 .star-option.selected { color: #d97706; }
 .star-option:hover { transform: scale(1.15); }
@@ -3142,6 +3142,18 @@ textarea:focus-visible,
 }
 .gallery-main:hover img { transform: scale(1.06); }
 .gallery-thumbs { display: flex; gap: var(--space-2); }
+.gallery-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  background: var(--color-gray-100);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, opacity var(--dur-fast) ease;
+  padding: 0;
+}
+.gallery-thumb:hover { opacity: 0.85; }
+.gallery-thumb.active { border-color: var(--color-black); }
 .thumb {
   flex: 1;
   aspect-ratio: 1;

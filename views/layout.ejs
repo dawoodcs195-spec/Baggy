@@ -55,7 +55,7 @@
   <link rel="stylesheet" href="/public/css/admin-enhanced.css?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" />
   <% if (typeof pageCss !== 'undefined' && pageCss) { pageCss.forEach(c => { %><link rel="stylesheet" href="<%= c %>" /><% }) } %>
 </head>
-<body data-csrf="<%= csrfToken %>" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
+<body data-csrf="<%= csrfToken %>" data-user-email="<%= user && user.email ? user.email : '' %>" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <!-- Announcement bar -->
@@ -126,7 +126,7 @@
           <svg class="icon-heart-empty" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
-          <% if (wishlistCount > 0) { %><span class="badge" aria-label="Wishlist count"><%= wishlistCount %></span><% } %>
+          <span class="badge <%= wishlistCount === 0 ? 'hidden' : '' %>" aria-label="Wishlist count"><%= wishlistCount %></span>
         </a>
         <!-- Cart -->
         <a href="/cart" class="icon-btn cart-btn" aria-label="Shopping cart">
