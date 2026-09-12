@@ -67,6 +67,18 @@
       <a href="/shop" class="btn">CONTINUE SHOPPING</a>
       <a href="/cart" class="btn btn-secondary">VIEW CART</a>
     </div>
+
+    <!-- Order chat: message the store about this order -->
+    <div class="order-chat" data-order-chat="<%= order.orderId %>">
+      <h3 class="order-chat-title">Messages about this order</h3>
+      <div class="order-chat-thread" id="order-chat-thread" aria-live="polite">
+        <p class="order-chat-empty">No messages yet. Have a question about this order? Send a message below.</p>
+      </div>
+      <form class="order-chat-form" id="order-chat-form">
+        <textarea class="order-chat-input" id="order-chat-input" placeholder="Type your message..." rows="3" maxlength="2000" aria-label="Your message"></textarea>
+        <button type="submit" class="btn btn-primary">Send Message</button>
+      </form>
+    </div>
   </div>
 </div>
 

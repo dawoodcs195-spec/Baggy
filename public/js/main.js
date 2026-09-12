@@ -2140,6 +2140,69 @@
     });
   }
 
+  // ─── 21. Order chat (customer order detail) ─────────────────
+  // Lazy-loads the thread on the order page and handles submit.
+  (function () {
+    const chatHost = document.querySelector('[data-order-chat]');
+    if (!chatHost) return;
+    const orderId = chatHost.dataset.orderChat;
+    const thread = $('#order-chat-thread');
+    const form = $('#order-chat-form');
+    const input = $('#order-chat-input');
+
+    async function loadThread() {
+      try {
+        const res = await fetch('/api/order-message/' + encodeURIComponent(orderId));
+        const data = await res.json();
+        if (!data.ok || !data.messages.length) return;
+        thread.innerHTML = '';
+        data.messages.forEach((m) => {
+          const el = document.createElement('div');
+          el.className = 'order-chat-msg ' + (m.direction === 'admin' ? 'admin' : 'customer');
+          const when = new Date(m.createdAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' });
+          const who = m.direction === 'admin' ? 'BA GGY' : 'You';
+          el.innerHTML = '<div>' + escapeHtml(m.message) + '</div><div class="order-chat-msg-meta">' + escapeHtml(who) + ' · ' + when + '</div>';
+          thread.appendChild(el);
+        });
+        thread.scrollTop = thread.scrollHeight;
+      } catch { /* non-fatal: chat stays empty */ }
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+
+    loadThread();
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+        try {
+          const res = await fetch('/api/order-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId, message: text })
+          });
+          const data = await res.json();
+          if (data.ok) {
+            input.value = '';
+            loadThread();
+          } else {
+            showToast(data.message || 'Could not send message', 'error');
+          }
+        } catch {
+          showToast('Network error — please try again', 'error');
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = 'Send Message'; }
+        }
+      });
+    }
+  })();
+
   // Expose themed dialog helpers for page-level scripts
   window.showToast = showToast;
   window.showConfirm = showConfirm;

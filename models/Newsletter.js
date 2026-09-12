@@ -14,9 +14,10 @@ const newsletterSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const messageSchema = new mongoose.Schema({
-  orderId: { type: String, required: true, index: true },
-  email:   { type: String, required: true },
-  message: { type: String, required: true }
+  orderId:  { type: String, required: true, index: true },
+  email:    { type: String, required: true },
+  message:  { type: String, required: true, maxlength: 2000 },
+  direction:{ type: String, enum: ['customer', 'admin'], default: 'customer' }
 }, { timestamps: true });
 
 // Indexes: the admin inbox and newsletter views sort by date; contacts filter by status.

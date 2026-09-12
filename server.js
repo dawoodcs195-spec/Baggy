@@ -191,6 +191,7 @@ require('./routes/cart')(app, d);
 require('./routes/checkout')(app, d);
 require('./routes/auth')(app, d);
 require('./routes/admin')(app, d);
+require('./routes/order-chat')(app, d);
 
 // ── API: Auth (role-based, DB-backed) ─────────────────────────
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ChangeMe-Admin-2024';
