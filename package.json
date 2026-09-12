@@ -20,7 +20,9 @@
     "lint:fix": "eslint --fix server.js routes/ middleware/ services/ utils/ tests/ scripts/",
     "format": "prettier --write \"**/*.js\" \"**/*.json\" \"**/*.css\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.js\" \"**/*.json\" \"**/*.css\" --ignore-path .gitignore",
-    "hooks:install": "node scripts/install-hooks.js"
+    "hooks:install": "node scripts/install-hooks.js",
+    "load": "node scripts/load-test.js",
+    "load:api": "node scripts/load-test-api.js"
   },
   "dependencies": {
     "cloudinary": "^2.11.0",
@@ -38,6 +40,7 @@
     "pino": "^10.3.1"
   },
   "devDependencies": {
+    "autocannon": "^7.15.0",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "nodemon": "^3.0.3",
