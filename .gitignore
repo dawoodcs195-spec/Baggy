@@ -16,10 +16,11 @@ public/uploads/
 # ── Local tooling / scratch ─────────────────────────────
 .freebuff/
 .claude/
-tmp-*.js
-problem.png
-problem1.png
-problem2.png
+tmp-*
+_*.ps1
+_*.sh
+npm-dev-log.txt
+problem*.png
 .freebuff_checkout_new.html
 check-out.txt
 checks-out.txt

@@ -32,7 +32,7 @@ MongoDB must be running locally (or set `MONGO_URI`). Without Mongo the app boot
 | `npm start` | Boot the server |
 | `npm test` | Run the Vitest suite (48 integration tests) |
 | `npm run check` | Phase 1 + 2 unit checks (30 assertions) |
-| `npm run audit` | Security audit (28 checks, incl. live header/cookie probe) |
+| `npm run audit` | Security audit (30 checks, incl. live header/cookie probe) |
 | `npm run smoke` | Render every template to catch crashes (35 templates) |
 | `npm run load` | Load-test home/shop/search (autocannon, 50 conn) |
 | `npm run load:api` | Load-test search API + checkout page |
@@ -104,10 +104,10 @@ GitHub Actions runs lint â†’ test â†’ audit on every push to `main`.
    | `ADMIN_EMAILS` | comma-separated admin emails |
    | `ADMIN_PASSWORD` | strong password (10+) |
    | `APP_URL` | `https://your-app.vercel.app` |
-   | `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY` | optional — card payments |
-   | `STRIPE_WEBHOOK_SECRET` | optional — payment confirmation webhook |
-   | `RESEND_API_KEY` | optional — transactional email |
-   | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | optional — image uploads |
+   | `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY` | optional â€” card payments |
+   | `STRIPE_WEBHOOK_SECRET` | optional â€” payment confirmation webhook |
+   | `RESEND_API_KEY` | optional â€” transactional email |
+   | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | optional â€” image uploads |
 
 5. **Deploy.** The `api/index.js` serverless adapter boots the Express app once per warm instance and routes all traffic through it. Static assets under `/public` are served by Vercel.
 

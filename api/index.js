@@ -1,4 +1,4 @@
-﻿// Vercel serverless adapter — mounts the BA GGY Express app for serverless.
+// Vercel serverless adapter — mounts the BA GGY Express app for serverless.
 // Vercel sets NODE_ENV=production and VERCEL=1; server.js skips app.listen()
 // in that case, so this adapter just boots once and hands requests to Express.
 const { app, boot } = require("../server");

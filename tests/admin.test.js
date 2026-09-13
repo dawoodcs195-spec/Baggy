@@ -1,5 +1,4 @@
 const { createClient, ensureBooted, loginAdmin, loginUser, csrfPost } = require('./helpers');
-const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 
 beforeAll(async () => {

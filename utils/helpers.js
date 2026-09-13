@@ -1,6 +1,5 @@
 // Shared helpers: currency formatting, image URLs, session/user mapping,
 // and order-status tracking.
-const path = require('path');
 
 function fmt(num) {
   return Number(num).toLocaleString('en-PK');

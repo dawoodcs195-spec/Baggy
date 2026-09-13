@@ -23,7 +23,7 @@ const productImageUpload = multer({
 });
 
 // Helper to upload buffer to Cloudinary
-async function uploadToCloudinary(buffer, mimetype) {
+async function uploadToCloudinary(buffer, _mimetype) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { resource_type: 'image', folder: 'baggy-jeans-shop' },

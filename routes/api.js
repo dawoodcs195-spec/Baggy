@@ -4,7 +4,7 @@
 module.exports = function (app, d) {
   // Service bound as `mailer`: several handlers destructure the customer's
   // `email` string from req.body, which would shadow a binding named `email`.
-  const { Product, Contact, Newsletter, asyncHandler, isValidEmail, sanitizeText, contactLimiter, logger, email: mailer } = d;
+  const { Product, Contact, Newsletter, asyncHandler, isValidEmail, sanitizeText, contactLimiter, email: mailer } = d;
 
 // ── API Routes ──────────────────────────────────────────────────
 // Pattern demo: this route is wrapped with asyncHandler — a rejected promise
@@ -52,7 +52,7 @@ app.post('/api/newsletter', async (req, res) => {
 
 // ── API: Newsletter page subscribe ─────────────────────────────
 app.post('/api/newsletter/subscribe', async (req, res) => {
-  const { email, digest } = req.body;
+  const { email } = req.body;
   if (!email || !isValidEmail(email)) return res.status(400).json({ ok: false, message: 'Please enter a valid email address' });
   try {
     const normalized = String(email).toLowerCase().trim();

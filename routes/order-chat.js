@@ -5,7 +5,7 @@
 // Admins read the thread and reply. Replies arrive in the customer's inbox on
 // the order detail page (and by email if the mailer is configured).
 module.exports = function (app, d) {
-  const { Order, OrderMessage, renderPage, isAdmin, asyncHandler, logger, email } = d;
+  const { Order, OrderMessage, isAdmin, asyncHandler, logger, email } = d;
 
   // ── Customer: send a message on one of my orders ────────────────
   // Mounted before the admin routes so the ownership check applies.

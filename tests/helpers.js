@@ -1,6 +1,5 @@
 // Test helpers: CSRF token management + authenticated requests.
 // Delegates to tests/app.js which sets env vars before importing server.js.
-const { agent } = require('supertest');
 const { app, ensureBooted, createClient, User, Product, Coupon } = require('./app');
 
 /** Get a CSRF token from any agent by hitting a GET route (sets up session). */

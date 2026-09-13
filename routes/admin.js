@@ -2,7 +2,7 @@
 // routes/admin.js — Phase 2 split from server.js
 // Factory: register(app, d) — d is the shared dependency bundle from server.js.
 module.exports = function (app, d) {
-  const { Product, Order, User, Settings, Coupon, Newsletter, Contact, OrderMessage, Review, renderPage, isAdmin, requireAdminApi, escapeRegex, sanitizeText, isValidEmail, parseBoolean, ORDER_STATUSES, trackingStepsFor, sessionUser, CLOUDINARY_PLACEHOLDER, productImageUpload, validateProductImages, verifyCsrf, uploadToCloudinary, logger, email } = d;
+  const { Product, Order, User, Settings, Coupon, Newsletter, Contact, Review, renderPage, isAdmin, requireAdminApi, escapeRegex, sanitizeText, isValidEmail, parseBoolean, ORDER_STATUSES, trackingStepsFor, CLOUDINARY_PLACEHOLDER, productImageUpload, validateProductImages, verifyCsrf, uploadToCloudinary, logger, email } = d;
 
 // Enable/disable a coupon without deleting it.
 // ── Admin Routes ────────────────────────────────────────────────
@@ -841,7 +841,7 @@ app.patch('/api/admin/product/:id/stock', async (req, res) => {
 app.patch('/api/admin/product/:id/status', async (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ ok: false });
   const { id } = req.params;
-  const { featured, active, status } = req.body;
+  const { featured, active } = req.body;
   try {
     const product = await Product.findOne({ id }).lean();
     if (!product) return res.status(404).json({ ok: false, message: 'Product not found' });
@@ -913,7 +913,7 @@ app.get('/api/admin/newsletter/export', async (req, res) => {
 
 app.post('/api/admin/newsletter/send', async (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ ok: false });
-  const { subject, previewText, body } = req.body;
+  const { subject, body } = req.body;
   if (!subject || !body) {
     return res.status(400).json({ ok: false, message: 'Subject and body are required' });
   }
@@ -965,7 +965,6 @@ app.get("/admin/orders/print", d.asyncHandler(async (req, res) => {
   const match = statusFilter ? { status: statusFilter } : {};
   const orders = await Order.find(match).sort({ createdAt: -1 }).lean();
   const total = orders.length;
-  const year = new Date().getFullYear();
 
   const itemRows = (items) => (items || []).map((i) =>
     `<tr><td>${(i.name||"").replace(/</g,"&lt;")}</td><td>${i.size||""}</td><td>${i.qty||1}</td><td>?${(i.price||0).toLocaleString("en-PK")}</td></tr>`
@@ -977,7 +976,7 @@ app.get("/admin/orders/print", d.asyncHandler(async (req, res) => {
         <div><strong>#${o.orderId}</strong> <span class="po-date">${new Date(o.createdAt).toLocaleString("en-PK")}</span></div>
         <span class="po-status po-${o.status}">${(o.status||"").toUpperCase()}</span>
       </div>
-      <div class="po-customer">${(o.customer?.name||"").replace(/</g,"&lt;")} � ${(o.customer?.email||"").replace(/</g,"&lt;")} � ${(o.customer?.phone||"").replace(/</g,"&lt;")}</div>
+      <div class="po-customer">${(o.customer?.name||"").replace(/</g,"&lt;")} � ${(o.customer?.email||"").replace(/</g,"&lt;")} � ${(o.customer?.phone||"").replace(/</g,"&lt;")}</div>
       <table class="po-table"><thead><tr><th>Item</th><th>Size</th><th>Qty</th><th>Price</th></tr></thead>
       <tbody>${itemRows(o.items)}</tbody></table>
       <div class="po-totals">
@@ -989,7 +988,7 @@ app.get("/admin/orders/print", d.asyncHandler(async (req, res) => {
       </div>
     </div>`).join("");
 
-  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Orders � BA GGY</title>
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Orders � BA GGY</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0a0a0a;padding:32px;font-size:12px}
@@ -1010,7 +1009,7 @@ app.get("/admin/orders/print", d.asyncHandler(async (req, res) => {
   @media print{body{padding:16px}.po-order{break-inside:avoid}}
 </style></head><body>
 <h1>BA GGY</h1>
-<div class="po-meta">${total} order(s)${statusFilter ? " � status: "+statusFilter : ""} � printed ${new Date().toLocaleString("en-PK")}</div>
+<div class="po-meta">${total} order(s)${statusFilter ? " � status: "+statusFilter : ""} � printed ${new Date().toLocaleString("en-PK")}</div>
 ${orderCards}
 <script>window.onload=function(){window.print()}</script>
 </body></html>`;

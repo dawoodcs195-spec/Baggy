@@ -9,7 +9,6 @@ process.env.ADMIN_EMAILS = 'admin@baggy.test';
 process.env.ADMIN_PASSWORD = 'TestAdminPass123!';
 process.env.STRICT_TEMPLATE_SMOKE = '0';
 
-const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 const User = require('../models/User');
