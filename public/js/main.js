@@ -10,7 +10,7 @@
   const $  = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
-  // ─── 0. CSRF: auto-attach token to every fetch ────────────────
+    // ─── 0. CSRF: auto-attach token to every fetch ────────────────
   const CSRF_TOKEN = document.body?.dataset.csrf || '';
   const _origFetch = window.fetch;
   window.fetch = function (input, init = {}) {
@@ -57,16 +57,18 @@
     const saved = localStorage.getItem(KEY);
     const theme = saved === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
-    const toggle = $('#theme-toggle');
-    if (toggle) {
-      toggle.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme') || 'light';
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem(KEY, next);
-        toggle.setAttribute('aria-label', next === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-      });
-    }
+    const toggles = $$('#theme-toggle, #theme-toggle-mobile');
+    const mobileLabel = $('.nav-settings-theme-label');
+    const paint = () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem(KEY, next);
+      toggles.forEach((el) => el.setAttribute('aria-label', next === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'));
+      if (mobileLabel) mobileLabel.textContent = next === 'dark' ? 'Light mode' : 'Dark mode';
+    };
+    toggles.forEach((el) => el.addEventListener('click', paint));
+    if (mobileLabel) mobileLabel.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
   })();
 
   // ─── 2. Character Splitter ────────────────────────────────────
@@ -155,11 +157,15 @@
 
   // ─── 4. Header scroll shadow + hide-on-scroll-down / reveal-on-scroll-up ──
   const header = $('.site-header');
+  // Pages whose hero sits flush under the nav (layout.ejs adds the body class)
+  // start with a transparent, borderless header that solidifies on scroll.
+  const overlayNav = document.body ? document.body.classList.contains('nav-overlay-hero') : false;
   if (header) {
     let lastY = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
       header.classList.toggle('scrolled', y > 20);
+      if (overlayNav) header.classList.toggle('nav-transparent', y <= 20);
       // Directional auto-hide: past the hero, scrolling down hides the header;
       // any upward scroll brings it back. Small deadzone prevents jitter
       // (trackpad feathering, iOS rubber-banding).
@@ -498,7 +504,7 @@
     });
   });
 
-  // ─── 10. Wishlist Toggle (only for .wishlist-toggle, NOT the .wishlist-btn header link) ──
+        // ─── 10. Wishlist Toggle (only for .wishlist-toggle, NOT the .wishlist-btn header link) ──
   // Guest behaviour: keep a localStorage copy during browsing. Once the visitor
   // signs in, that copy is pushed to the server (which merges it into the account's
   // persisted Wishlist) and the client switches to the server-backed list.
@@ -508,184 +514,70 @@
   })();
 
   function paintWishlistBadge() {
-    const badge = document.querySelector('.wishlist-btn .badge');
-    if (!badge) return;
-    badge.textContent = wishlist.length;
-    badge.classList.toggle('hidden', wishlist.length === 0);
-  }
-
-  function paintWishlistToggles() {
-    document.querySelectorAll('.wishlist-toggle').forEach((b) => {
-      const on = wishlist.includes(b.dataset.id);
-      b.classList.toggle('active', on);
-      const svg = b.querySelector('svg');
-      if (svg) {
-        svg.style.fill = on ? 'var(--color-accent)' : 'none';
-        svg.style.stroke = on ? 'var(--color-accent)' : 'currentColor';
-      }
+    const badges = $$('.wishlist-badge');
+    if (!badges.length) return;
+    badges.forEach((badge) => {
+      badge.textContent = String(wishlist.length || 0);
+      badge.classList.toggle('hidden', !wishlist.length);
     });
   }
 
-  paintWishlistToggles();
-  paintWishlistBadge();
+  function syncWishlistBadgeFromServer() {
+    // Best-effort sync so the header badge reflects the server list when possible.
+    // This never blocks the toggle itself.
+    fetch('/api/wishlist')
+      .then((res) => res.json())
+      .then((data) => {
+        const list = Array.isArray(data.wishlist) ? data.wishlist : [];
+        wishlist = list.map((i) => i.productId);
+        paintWishlistBadge();
+      })
+      .catch(() => {});
+  }
 
+  // Toggle handler: add for guests / signed-in visitors, remove if already present.
+  // Guest list is kept in localStorage; signed-in users rely on the server session.
   $$('.wishlist-toggle').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const id = btn.dataset.id;
-      if (!id) return;
-      // Optimistic UI first
-      const idx = wishlist.indexOf(id);
-      const adding = idx === -1;
-      if (adding) wishlist.push(id); else wishlist.splice(idx, 1);
-      try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
-      paintWishlistToggles();
+      const productId = btn.dataset.id;
+      if (!productId) return;
+
+      const alreadyIn = wishlist.includes(productId);
+      if (alreadyIn) {
+        wishlist = wishlist.filter((id) => id !== productId);
+        try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
+      } else {
+        wishlist.push(productId);
+        try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
+      }
+
       paintWishlistBadge();
-      showToast(adding ? 'Added to wishlist' : 'Removed from wishlist');
-      // The server session is the source of truth for the wishlist page and the
-      // login merge — /api/wishlist/toggle handles guests AND signed-in users
-      // (the CSRF header is auto-attached by the fetch wrapper). The response is
-      // authoritative: adopt it so badge, hearts and the wishlist page always agree.
+      btn.classList.toggle('active', !alreadyIn);
+
       try {
         const res = await fetch('/api/wishlist/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: id })
+          body: JSON.stringify({ productId })
         });
         const data = await res.json();
-        if (data.ok && Array.isArray(data.wishlist)) {
-          wishlist = data.wishlist.map((i) => i.productId);
-          try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
-          paintWishlistToggles();
-          paintWishlistBadge();
+        if (data.ok) {
+          syncWishlistBadgeFromServer();
+          showToast(alreadyIn ? 'Removed from wishlist' : 'Added to wishlist', 'success');
+        } else {
+          btn.classList.toggle('active', alreadyIn);
+          showToast(data.message || 'Could not update wishlist', 'error');
         }
-      } catch {}
+      } catch {
+        btn.classList.toggle('active', alreadyIn);
+        showToast('Network error', 'error');
+      }
     });
   });
 
-  // Sync the guest localStorage wishlist into the server session after login/register.
-  // Mirrors the cart client's pattern: the auth response returns wishlistCount, and any
-  // previously-stored guest items have already been folded into the account by adoptUserSession.
-  function bindAuthWidgets() {
-    const loginForm = document.querySelector('#login-form') || document.querySelector('[data-login-form]');
-    const registerForm = document.querySelector('#register-form') || document.querySelector('[data-register-form]');
-    const authForms = [loginForm, registerForm].filter(Boolean);
-    let wire = (form) => {
-      form.addEventListener('submit', async (e) => {
-        // Let the form's own handler submit normally; we just request the server list
-        // after a short delay so the session has been rebuilt by adoptUserSession.
-        setTimeout(async () => {
-          try {
-            const r = await fetch('/api/wishlist', {
-              headers: { 'X-CSRF-Token': csrfToken }
-            });
-            if (r.ok) {
-              const data = await r.json();
-              // server-backed list becomes the source of truth; clear localStorage
-              // so the guest copy doesn't double-count on the next visit.
-              wishlist = (data.wishlist || []).map(i => i.productId);
-              try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
-              paintWishlistToggles();
-              paintWishlistBadge();
-            }
-          } catch {}
-        }, 400);
-      });
-    };
-    authForms.forEach(wire);
-
-    // Also refresh when the auth polling widget (if any) confirms a sign-in.
-    const authStatus = document.querySelector('[data-auth-status]');
-    if (authStatus) {
-      authStatus.addEventListener('auth-signed-in', () => {
-        fetch('/api/wishlist', { headers: { 'X-CSRF-Token': csrfToken } })
-          .then(r => r.ok ? r.json() : Promise.resolve({}))
-          .then(data => {
-            wishlist = (data.wishlist || [] || []).map(i => i.productId);
-            try { localStorage.setItem('baggy_wishlist', JSON.stringify(wishlist)); } catch {}
-            paintWishlistToggles();
-            paintWishlistBadge();
-          });
-      });
-    }
-  }
-  bindAuthWidgets();
-
-  // ─── 11. Product Page Interactions ───────────────────────────
-  const productPage = $('.product-page');
-  if (productPage) {
-    const productId = productPage.dataset.productId;
-
-    // Size buttons
-    $$('.size-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        $$('.size-btn').forEach((b) => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        const inp = $('#selected-size');
-        if (inp) inp.value = btn.dataset.size;
-      });
-    });
-
-
-    const preSelected = $('.size-btn.active');
-    if (preSelected) preSelected.classList.add("selected");
-
-    // Qty controls
-    const qtyInput = $('#qty-input');
-    $('#qty-minus')?.addEventListener('click', () => {
-      const v = parseInt(qtyInput?.value) || 1;
-      if (v > 1) qtyInput.value = v - 1;
-    });
-    $('#qty-plus')?.addEventListener('click', () => {
-      const v = parseInt(qtyInput?.value) || 1;
-      const max = parseInt(qtyInput?.max) || 99;
-      if (v < max) qtyInput.value = v + 1;
-    });
-
-    // Add to cart
-    const addBtn = $('.add-to-cart');
-    if (addBtn) {
-      addBtn.addEventListener('click', async () => {
-        const size = $('#selected-size')?.value || 'M';
-        const qty = parseInt(qtyInput?.value) || 1;
-        addBtn.disabled = true;
-        addBtn.textContent = 'Adding...';
-        const ok = await addToCart(productId, size, qty);
-        if (ok) { showToast('Added to cart!'); } else { showToast('Failed to add', 'error'); }
-        addBtn.disabled = false;
-        addBtn.textContent = 'Add to Cart';
-      });
-    }
-
-    // Gallery thumbs
-    const mainImg = $('#main-img');
-    $$('.gallery-thumb, .thumb').forEach((thumb) => {
-      thumb.addEventListener('click', () => {
-        $$('.gallery-thumb, .thumb').forEach((t) => t.classList.remove('active'));
-        thumb.classList.add('active');
-        if (mainImg) {
-          mainImg.style.transition = 'opacity 0.2s ease';
-          mainImg.style.opacity = '0';
-          setTimeout(() => {
-            mainImg.src = thumb.dataset.img || thumb.src;
-            mainImg.style.opacity = '1';
-          }, 200);
-        }
-      });
-    });
-
-    // Tabs
-    $$('.tab-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const target = btn.dataset.tab;
-        $$('.tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
-        $$('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === target));
-      });
-    });
-  }
-
-  // ─── 12. Cart Page — qty +/− (no confirm modal needed) ──────
+    // ─── 12. Cart Page — qty +/− (no confirm modal needed) ──────
   if ($('.cart-page')) {
     $$('.qty-minus, .qty-plus').forEach((btn) => {
       btn.addEventListener('click', async () => {
@@ -1357,23 +1249,8 @@
     }
   }
 
-  // ─── 14L. Wishlist API sync ─────────────────────────────────
-  // Sync the in-page wishlist with the server session.
-  // The wishlist page now uses the server-backed list (rendered by EJS),
-  // but toggles need to hit /api/wishlist/toggle to stay in sync.
-  function syncWishlistFromServer(then) {
-    fetch('/api/wishlist')
-      .then(r => r.ok ? r.json() : [])
-      .then(list => {
-        if (Array.isArray(list)) {
-          localStorage.setItem('baggy_wishlist', JSON.stringify(list.map(i => i.productId)));
-        }
-        if (typeof then === 'function') then(list);
-      })
-      .catch(() => {
-        if (typeof then === 'function') then([]);
-      });
-  }
+    // syncWishlistFromServer(list => {...}) was removed here — replaced by the
+  // authoritative reconcile() in section 10 (fixes phantom wishlist badge).
 
   // Wire wishlist page toggle buttons to the API
   function wireWishlistApiToggles() {
@@ -1453,6 +1330,44 @@
     const logoutBtn = $('#logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+        } catch {}
+        window.location.href = '/';
+      });
+    }
+  }
+
+  // ─── 14M1b. Phone settings menu (account / wishlist / admin / theme) ──
+  const navSettingsBtn = $('#nav-settings-btn');
+  const navSettingsPanel = $('#nav-settings-panel');
+  const navSettings = $('#nav-settings');
+  if (navSettingsBtn && navSettingsPanel) {
+    const setSettingsOpen = (open) => {
+      navSettingsPanel.classList.toggle('hidden', !open);
+      navSettingsBtn.setAttribute('aria-expanded', String(open));
+      navSettings?.classList.toggle('open', open);
+    };
+    navSettingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setSettingsOpen(navSettingsPanel.classList.contains('hidden'));
+    });
+    document.addEventListener('click', (e) => {
+      if (!navSettingsPanel.classList.contains('hidden') && !navSettingsPanel.contains(e.target) && e.target !== navSettingsBtn && !navSettingsBtn.contains(e.target)) {
+        setSettingsOpen(false);
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !navSettingsPanel.classList.contains('hidden')) setSettingsOpen(false);
+    });
+    // Keep menu actions usable immediately: close after navigating to a link
+    navSettingsPanel.addEventListener('click', (e) => {
+      if (e.target.closest('a')) setSettingsOpen(false);
+    });
+    const mobileLogout = $('#logout-btn-mobile');
+    if (mobileLogout) {
+      mobileLogout.addEventListener('click', async () => {
         try {
           await fetch('/api/auth/logout', { method: 'POST' });
         } catch {}
@@ -1754,11 +1669,11 @@
   function showAuthMessage(el, msg) {
     if (!el) return;
     el.textContent = msg;
-    el.style.display = 'block';
+    el.classList.remove('hidden');
   }
   function clearAuthMessages() {
-    if (loginError) { loginError.style.display = 'none'; }
-    if (loginSuccess) { loginSuccess.style.display = 'none'; }
+    if (loginError) loginError.classList.add('hidden');
+    if (loginSuccess) loginSuccess.classList.add('hidden');
   }
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
@@ -1941,16 +1856,13 @@
     setTimeout(applyPriceFilter, 0);
   });
 
-  // Initial cart count
+    // Initial cart count
   updateCartCount();
-  // Sync wishlist badge from server on load
-  syncWishlistFromServer(list => {
-    const badge = document.querySelector('.wishlist-btn .badge');
-    if (badge) {
-      badge.textContent = list.length;
-      badge.classList.toggle('hidden', list.length === 0);
-    }
-  });
+  // Wishlist badge is kept in sync via the reconcile() call in section 10 above
+  // (which adopts the server session as the source of truth). The old
+  // syncWishlistFromServer(list => badge.textContent = list.length) was removed:
+  // it received the raw {wishlist:[...]} object instead of the array, so
+  // list.length was undefined → textContent "" + hidden removed → phantom dot.
 
   // ─── 14T. Password strength meter (register + reset password) ──
   const PW_LABELS = ['Too short', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -2209,6 +2121,35 @@
   window.showConfirm = showConfirm;
   window.showAlert = showAlert;
 
+      // ─── Product Page: gallery + tabs ────────────────────────────────
+  // Handles image switching via gallery thumbs + tab switching (Details/Care/Shipping).
+  (function () {
+    const productPage = document.querySelector('.product-page');
+    if (!productPage) return;
+    const mainImg = $('#main-img');
+    $$('.gallery-thumb').forEach((thumb) => {
+      thumb.addEventListener('click', () => {
+        $$('.gallery-thumb').forEach((t) => t.classList.remove('active'));
+        thumb.classList.add('active');
+        if (mainImg) {
+          mainImg.style.transition = 'opacity 0.2s ease';
+          mainImg.style.opacity = '0';
+          setTimeout(() => {
+            mainImg.src = thumb.src;
+            mainImg.style.opacity = '1';
+          }, 200);
+        }
+      });
+    });
+    $$('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        $$('.tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
+        $$('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === target));
+      });
+    });
+  })();
+
   // ─── Product Reviews (customer-facing) ───────────────────────────
   // Only on the product page. The star picker is rendered server-side by product.ejs
   // so the JS is purely behavioural: paint the initial selection, let the user change
@@ -2240,8 +2181,9 @@
           svg.style.stroke = on ? '#d97706' : 'currentColor';
         }
       });
-      if (ratingInput) ratingInput.value = chosenRating;
+            if (ratingInput) ratingInput.value = chosenRating;
     }
+
 
     stars.forEach((el) => {
       el.addEventListener('click', () => {
@@ -2317,6 +2259,37 @@
           submitBtn.textContent = 'Post Review';
         }
       }
+    });
+  })();
+
+  // ─── 14O. Admin tables: label every cell for the phone card layout ──
+  // Phones turn each admin table row into a stacked card, and CSS prints the
+  // column name from `data-label`. Deriving it from <thead> means no template
+  // needs to hand-maintain labels, and any table added later just works.
+  (function labelAdminTables() {
+    const label = (table) => {
+      const heads = $$('thead th', table).map((th) => th.textContent.trim());
+      if (!heads.length) return;
+      $$('tbody tr', table).forEach((row) => {
+        $$('td', row).forEach((td, i) => {
+          const text = heads[i] || '';
+          if (text && !td.dataset.label) td.dataset.label = text;
+        });
+      });
+    };
+    const tables = $$('.admin-table');
+    if (!tables.length) return;
+    tables.forEach(label);
+    // Admin search boxes re-render tbody.innerHTML — re-label the new rows.
+    const observer = new MutationObserver((muts) => {
+      for (const m of muts) {
+        const table = m.target.closest ? m.target.closest('.admin-table') : null;
+        if (table) label(table);
+      }
+    });
+    tables.forEach((table) => {
+      const body = $('tbody', table);
+      if (body) observer.observe(body, { childList: true });
     });
   })();
 

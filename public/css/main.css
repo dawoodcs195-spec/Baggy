@@ -23,6 +23,10 @@
   --color-gray-700:    #3f3f46;
   --color-gray-900:    #18181b;
   --color-accent:      #b8002f;
+  /* Accent colour for TEXT. Same value as --color-accent on cream surfaces;
+     dark mode lightens it so red copy/links stay readable on charcoal
+     while solid accent fills keep the true brand hue. */
+  --color-accent-text: #b8002f;
 
   /* Typography */
   --font-display: 'Cormorant', Georgia, 'Times New Roman', serif;
@@ -90,10 +94,31 @@
   --color-gray-700:    #c0c0c0;
   --color-gray-900:    #e0e0e0;
 
+  --color-accent-text: #ff8095;
+
   --shadow-sm:  0 1px 2px rgba(0,0,0,0.3);
   --shadow-md:  0 4px 12px rgba(0,0,0,0.4);
   --shadow-lg:  0 12px 32px rgba(0,0,0,0.5);
   --shadow-xl:  0 24px 60px rgba(0,0,0,0.6);
+}
+/* Form controls do not inherit `color` from their ancestors, so every field
+   kept the UA's black text while its surface flipped to near-black — typed
+   text was invisible site-wide in dark mode. Placeholders get the muted
+   token so they stay distinguishable from real values. */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  color: var(--color-black);
+}
+[data-theme="dark"] ::placeholder {
+  color: var(--color-gray-500);
+  opacity: 1;
+}
+/* The brand error red is tuned for cream surfaces; on the charcoal canvas it
+   fell to ~2.5:1, which made destructive actions unreadable. Consume the
+   text-lifted accent instead of changing the brand hue. */
+[data-theme="dark"] .text-error {
+  color: var(--color-accent-text) !important;
 }
 
 /* ═══════ RESET ═══════ */
@@ -308,13 +333,41 @@ textarea:focus-visible,
   border-bottom: 1px solid var(--color-gray-200);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  transition: box-shadow var(--dur-base) ease, transform 0.35s var(--ease-out), top 0.35s var(--ease-out);
+  transition: background-color var(--dur-base) ease, border-color var(--dur-base) ease,
+              box-shadow var(--dur-base) ease, transform 0.35s var(--ease-out), top 0.35s var(--ease-out);
 }
 /* Hide-on-scroll-down, reveal-on-scroll-up (class-driven from main.js) */
 .site-header.nav-hidden { transform: translateY(-100%); }
 /* Anchor jumps / in-page navigation: keep the header out of the way */
 .site-header.anchor-hidden { top: calc(-1 * var(--header-h, 72px)); }
 .site-header.scrolled { box-shadow: var(--shadow-sm); }
+
+/* ═══════ TRANSPARENT NAV OVER A HERO ═══════
+   Opt-in per page: layout.ejs adds `nav-overlay-hero` to <body> when a route
+   passes transparentNav, and main.js adds `nav-transparent` to the header
+   while the page is still at the top. The header keeps its flow slot; the
+   hero is pulled up underneath it and given the same amount back as padding,
+   so the nav floats on the hero background with the hero content unchanged.
+   Scrolling past the threshold (or any other page) → the normal opaque bar. */
+body.nav-overlay-hero .site-header.nav-transparent {
+  background: transparent;
+  border-bottom-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+body.nav-overlay-hero .hero-section {
+  margin-top: calc(-1 * var(--header-h, 72px));
+  padding-top: calc(var(--space-10) + var(--header-h, 72px));
+  /* 100vh - header was short once the box moved up by --header-h */
+  min-height: 100vh;
+  min-height: 100svh;
+}
+@media (max-width: 900px) {
+  body.nav-overlay-hero .hero-section {
+    padding-top: calc(var(--space-8) + var(--header-h, 72px));
+  }
+}
 .header-inner {
   display: flex;
   align-items: center;
@@ -1215,6 +1268,41 @@ textarea:focus-visible,
   color: var(--color-gray-500);
 }
 .auth-footer-link a { color: var(--color-accent); font-weight: 600; }
+.auth-switch-hint {
+  font-size: 0.875rem;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-4);
+}
+.auth-terms {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-4);
+}
+.auth-terms a { color: var(--color-accent); font-weight: 600; }
+.auth-note {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin-bottom: var(--space-4);
+}
+.auth-note a { color: var(--color-accent); font-weight: 600; }
+.auth-reset-box {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-gray-100, #f7f7f5);
+}
+.auth-reset-title { font-size: 0.8125rem; margin-bottom: var(--space-2); }
+.auth-reset-link {
+  font-size: 0.8125rem;
+  word-break: break-all;
+  color: var(--color-accent);
+}
+.auth-reset-note {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  margin-top: var(--space-2);
+}
 .auth-error {
   background: rgba(184, 0, 47, 0.08);
   border: 1px solid var(--color-accent);
@@ -1232,6 +1320,18 @@ textarea:focus-visible,
   font-size: 0.875rem;
   margin-bottom: var(--space-4);
   border-radius: 2px;
+}
+
+/* Below ~900px a 50/50 split squeezes the form card too far for comfort,
+   so the poster stacks above it and the pair re-centres. Phone-specific
+   spacing and the slim-banner treatment live in mobile.css. */
+@media (max-width: 900px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    max-width: 460px;
+  }
+  .auth-visual { aspect-ratio: 16/9; }
 }
 
 /* ═══════ NEWSLETTER PAGE ═══════ */
@@ -1604,92 +1704,6 @@ textarea:focus-visible,
   padding-top: var(--space-6);
   border-top: 1px solid var(--color-gray-200);
 }
-
-/* ═══════ ACCOUNT PAGE (extended) ═══════ */
-.account-grid { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-10); }
-.account-sidebar {
-  background: var(--color-white);
-  border: 1px solid var(--color-gray-200);
-  padding: var(--space-8);
-  position: sticky;
-  top: calc(var(--header-h) + var(--space-4));
-  display: flex;
-  flex-direction: column;
-}
-.account-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--color-cream);
-  color: var(--color-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: var(--space-4);
-}
-.account-sidebar h3 {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: var(--space-2);
-}
-.account-sidebar p {
-  font-size: 0.875rem;
-  color: var(--color-gray-500);
-  margin-bottom: var(--space-6);
-}
-.account-signed-in-details .btn { margin-bottom: var(--space-3); }
-.account-nav { margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--color-gray-200); }
-.account-nav li a {
-  display: block;
-  padding: var(--space-3) var(--space-4);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-gray-600);
-  border-radius: 2px;
-  transition: all var(--dur-fast) ease;
-}
-.account-nav li a:hover { background: var(--color-gray-50); color: var(--color-black); }
-.account-nav li a.active { background: var(--color-black); color: var(--color-white); }
-.account-content { min-height: 400px; }
-.account-tab { display: none; }
-.account-tab.active { display: block; }
-.account-tab h2 {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin-bottom: var(--space-6);
-}
-.account-orders-list { display: flex; flex-direction: column; gap: var(--space-4); }
-.account-order-card {
-  background: var(--color-white);
-  border: 1px solid var(--color-gray-200);
-  padding: var(--space-5);
-}
-.account-order-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-4);
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-.account-order-items { margin-bottom: var(--space-2); }
-.account-orders-list .account-empty { text-align: left; padding: var(--space-8) 0; }
-.account-empty { text-align: center; padding: var(--space-12) 0; }
-.account-empty svg { width: 48px; height: 48px; color: var(--color-gray-300); margin: 0 auto var(--space-4); }
-.account-empty h3 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; margin-bottom: var(--space-2); }
-.account-empty p { color: var(--color-gray-500); margin-bottom: var(--space-6); }
-.account-unauth { text-align: center; padding: var(--space-12) 0; }
-.account-unauth svg { width: 48px; height: 48px; color: var(--color-gray-300); margin: 0 auto var(--space-4); }
-.account-unauth h2 { font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; margin-bottom: var(--space-2); }
-.account-unauth p { color: var(--color-gray-500); margin-bottom: var(--space-6); }
-.account-settings-form .form-group label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: var(--space-2); display: block; }
-.account-settings-form .form-group input { width: 100%; padding: var(--space-3) var(--space-4); border: 1px solid var(--color-gray-300); background: var(--color-white); font-size: 0.9375rem; border-radius: 2px; }
-.account-settings-form .form-group input:disabled { background: var(--color-gray-50); color: var(--color-gray-500); }
 
 /* User menu */
 .user-menu-wrap { position: relative; }
@@ -4396,6 +4410,16 @@ textarea:focus-visible,
   transition: all 0.2s;
 }
 .search-suggestions a:hover { background: var(--color-white); color: var(--color-black); border-color: var(--color-white); }
+/* The search overlay sits on rgba(10,10,10,0.92) in BOTH themes, so its
+   foreground must never follow the flipping surface tokens — doing so turned
+   the close button, the query field and the suggestion chips into near-black
+   text on a near-black panel in dark mode. Pinned to the exact light-mode
+   values so light rendering is unchanged. */
+.search-overlay-header,
+.search-close,
+.search-overlay-form input,
+.search-suggestions a { color: #ffffff; }
+.search-suggestions a:hover { background: #ffffff; color: #0a0a0a; border-color: #ffffff; }
 
 /* Toast */
 .toast-container {

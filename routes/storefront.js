@@ -16,6 +16,9 @@ app.get('/', async (req, res) => {
     pageImage: '/public/images/home.png',
     // The editorial hero is the LCP element — start fetching it with the HTML.
     preloadImage: '/public/images/hero.png',
+    // Hero starts flush under the nav: the header renders transparent over it
+    // and solidifies on scroll (see layout.ejs + main.js).
+    transparentNav: true,
     featuredProducts: featured
   });
 });

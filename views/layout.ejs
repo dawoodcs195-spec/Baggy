@@ -53,9 +53,21 @@
   <% } %>
   <link rel="stylesheet" href="/public/css/main.css?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" />
   <link rel="stylesheet" href="/public/css/admin-enhanced.css?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" />
+  <link rel="stylesheet" href="/public/css/mobile.css?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" />
+  <link rel="stylesheet" href="/public/css/admin-polish.css?v=<%= typeof assetV !== 'undefined' ? assetV : year %>" />
   <% if (typeof pageCss !== 'undefined' && pageCss) { pageCss.forEach(c => { %><link rel="stylesheet" href="<%= c %>" /><% }) } %>
 </head>
-<body data-csrf="<%= csrfToken %>" class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
+<%
+    // Pages whose first section is a full-bleed hero opt in with
+    // `transparentNav: true` (see routes/storefront.js). The nav then floats
+    // over the hero and turns opaque as soon as the page scrolls.
+    const overlayNav = (typeof transparentNav !== 'undefined') && transparentNav === true;
+    const bodyClasses = [
+      (typeof bodyClass !== 'undefined' ? bodyClass : ''),
+      overlayNav ? 'nav-overlay-hero' : ''
+    ].filter(Boolean).join(' ');
+  %>
+<body data-csrf="<%= csrfToken %>" class="<%= bodyClasses %>">
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <!-- Announcement bar -->
@@ -94,7 +106,7 @@
         </button>
         <!-- Account -->
         <% if (user) { %>
-          <div class="user-menu-wrap">
+          <div class="user-menu-wrap nav-desktop-only">
             <button class="icon-btn user-menu-trigger" aria-label="Account menu" id="user-menu-trigger">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -114,7 +126,7 @@
             </div>
           </div>
         <% } else { %>
-          <a href="/account" class="icon-btn" aria-label="My Account">
+          <a href="/account" class="icon-btn nav-desktop-only" aria-label="My Account">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
@@ -122,11 +134,11 @@
           </a>
         <% } %>
         <!-- Wishlist -->
-        <a href="/wishlist" class="icon-btn wishlist-btn" aria-label="Wishlist">
+        <a href="/wishlist" class="icon-btn wishlist-btn nav-desktop-only" aria-label="Wishlist">
           <svg class="icon-heart-empty" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
-          <span class="badge <%= wishlistCount === 0 ? 'hidden' : '' %>" aria-label="Wishlist count"><%= wishlistCount %></span>
+          <span class="badge wishlist-badge <%= wishlistCount === 0 ? 'hidden' : '' %>" aria-label="Wishlist count"><%= wishlistCount %></span>
         </a>
         <!-- Cart -->
         <a href="/cart" class="icon-btn cart-btn" aria-label="Shopping cart">
@@ -138,10 +150,10 @@
           <span class="badge cart-count <%= cart.reduce((a,i)=>a+i.qty,0) === 0 ? 'hidden' : '' %>" aria-label="Cart items"><%= cart.reduce((a,i)=>a+i.qty,0) %></span>
         </a>
         <% if (user && user.role === 'admin') { %>
-          <a href="/admin" class="admin-header-btn<%= activePage === 'admin' ? ' active' : '' %>">Admin</a>
+          <a href="/admin" class="admin-header-btn nav-desktop-only<%= activePage === 'admin' ? ' active' : '' %>">Admin</a>
         <% } %>
         <!-- Dark mode toggle -->
-        <button class="icon-btn theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" title="Toggle theme">
+        <button class="icon-btn theme-toggle nav-desktop-only" id="theme-toggle" aria-label="Switch to dark mode" title="Toggle theme">
           <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
           </svg>
@@ -149,6 +161,50 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         </button>
+
+        <!-- Settings menu (phones only): account, orders, wishlist, admin, theme -->
+        <div class="nav-settings" id="nav-settings">
+          <button class="icon-btn nav-settings-btn" id="nav-settings-btn" aria-label="Settings and account" aria-expanded="false" aria-controls="nav-settings-panel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+          <div class="nav-settings-panel hidden" id="nav-settings-panel" role="menu" aria-label="Settings and account">
+            <% if (user) { %>
+              <div class="nav-settings-user">
+                <span class="nav-settings-avatar" aria-hidden="true"><%= user.name ? user.name.charAt(0).toUpperCase() : 'G' %></span>
+                <span class="nav-settings-usertext">
+                  <strong><%= user.name || 'Customer' %></strong>
+                  <em><%= user.email %></em>
+                </span>
+              </div>
+              <a href="/account" class="nav-settings-item" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Account</a>
+              <a href="/account/orders" class="nav-settings-item" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>My Orders</a>
+            <% } else { %>
+              <a href="/account" class="nav-settings-item" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Sign In / Account</a>
+            <% } %>
+            <a href="/wishlist" class="nav-settings-item wishlist-btn" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              Wishlist
+              <span class="badge wishlist-badge <%= wishlistCount === 0 ? 'hidden' : '' %>" aria-label="Wishlist count"><%= wishlistCount %></span>
+            </a>
+            <% if (user && user.role === 'admin') { %>
+              <a href="/admin" class="nav-settings-item nav-settings-admin<%= activePage === 'admin' ? ' active' : '' %>" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Admin Panel</a>
+            <% } %>
+            <button type="button" class="nav-settings-item nav-settings-theme" id="theme-toggle-mobile" role="menuitem">
+              <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              <span class="nav-settings-theme-label">Light mode</span>
+            </button>
+            <% if (user) { %>
+              <button type="button" class="nav-settings-item nav-settings-logout" id="logout-btn-mobile" role="menuitem">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+              </button>
+            <% } %>
+          </div>
+        </div>
       </div>
     </div>
   </header>

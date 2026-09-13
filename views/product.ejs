@@ -11,18 +11,14 @@
         <div class="gallery-main">
           <img id="main-img" src="<%= imgUrl(product.images && product.images[0]) %>" alt="<%= product.name %>" />
         </div>
-        <div class="gallery-thumbs">
-          <% (product.images || []).forEach((img, i) => { %>
-            <img src="<%= imgUrl(img) %>" alt="<%= product.name %> view <%= i + 1 %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" loading="lazy" data-index="<%= i %>" />
-          <% }) %>
-          <% if ((product.images || []).length > 1) { %>
+        <% if ((product.images || []).length > 1) { %>
           <div class="gallery-thumbs">
             <% (product.images || []).forEach((img, i) => { %>
               <img src="<%= imgUrl(img) %>" alt="<%= product.name %> view <%= i + 1 %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" loading="lazy" data-index="<%= i %>" />
             <% }) %>
           </div>
-          <% } %>
-        </div>
+        <% } %>
+      </div>
 
       <div class="product-info" data-reveal>
         <p class="product-category"><%= product.category === 'jeans' ? 'Baggy Jeans' : product.category === 'shirts' ? 'Oversized Tee' : product.category === 'uppers' ? 'Uppers' : product.category === 'accessories' ? 'Accessory' : product.category %></p>

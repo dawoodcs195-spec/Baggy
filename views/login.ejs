@@ -14,8 +14,8 @@
         <h2 data-split-text>Sign In</h2>
         <p class="auth-sub">Access your orders, wishlist, and saved details.</p>
 
-        <div id="auth-error" class="auth-error" style="display:none;"></div>
-        <div id="auth-success" class="auth-success" style="display:none;"></div>
+        <div id="auth-error" class="auth-error hidden"></div>
+        <div id="auth-success" class="auth-success hidden"></div>
 
         <form id="login-form" autocomplete="on" method="POST" action="/api/auth/login">
           <div class="form-group">
@@ -30,7 +30,7 @@
         </form>
 
         <div class="auth-divider">or</div>
-        <p style="font-size:0.875rem; color:var(--color-gray-500); margin-bottom:var(--space-4);">Don't have an account?</p>
+        <p class="auth-switch-hint">Don't have an account?</p>
         <a href="/account?action=register" class="btn btn-secondary w-100">Create Account</a>
 
         <p class="auth-footer-link">

@@ -296,8 +296,14 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
             <div>
               <strong>Store URL:</strong>
-              <a href="/" target="_blank" rel="noopener">http://localhost:3001</a>
+              <a href="/" target="_blank" rel="noopener" id="admin-store-url">/</a>
               <span style="font-size:0.8125rem;color:var(--color-gray-400);display:block;margin-top:4px;">Click to open the store in a new tab</span>
+              <script>
+                (function () {
+                  var el = document.getElementById('admin-store-url');
+                  if (el) el.textContent = window.location.origin;
+                })();
+              </script>
             </div>
           </div>
         </div>
@@ -360,7 +366,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     const dateEl = document.getElementById('current-date');
     if (dateEl) {
-      dateEl.style.color = 'var(--color-accent)';
+      dateEl.style.color = 'var(--color-accent-text)';
       dateEl.style.fontWeight = '600';
     }
   });

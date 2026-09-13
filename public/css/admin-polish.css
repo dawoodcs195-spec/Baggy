@@ -1,0 +1,369 @@
+/* ═══════════════════════════════════════════════════════════════
+   BA GGY — ADMIN POLISH
+   Loaded after main.css / admin-enhanced.css / mobile.css, so it can
+   refine the admin surfaces without editing the shared sheets.
+
+   Two jobs:
+     1. Dark-mode clarity. The admin UI leans on the flipped --color-*
+        tokens, which handle surfaces and body copy correctly, but the
+        muted greys, accent blocks and pale status chips were all picked
+        for a light page.
+     2. Phone layout for every /admin page: card tables, a compact
+        sidebar, stacked toolbars and comfortable tap targets.
+
+   Guidance: ui-ux-pro-max — >=44px touch targets, one primary gesture
+   per region, explicit label/value pairing, >=4.5:1 body contrast in
+   both themes, no horizontal page scroll.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Token gap in the theme ──────────────────────────────────────
+   .shop-pagination asks for --space-7, which was never defined, so the
+   declaration was dropped entirely and the margin collapsed to 0. */
+:root {
+  --space-7: 28px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   1. DARK MODE CLARITY
+   ══════════════════════════════════════════════════════════════ */
+
+/* --color-gray-400 (#6b6b6b) was chosen for a light page. On the dark
+   surface it lands at ~3.6:1, so every muted label, table head and
+   metadata line failed the 4.5:1 body-text threshold. */
+[data-theme="dark"] {
+  --color-gray-400: #9a9a9a;
+}
+
+/* Exception: the sidebar inverts to a cream slab in dark mode, so its
+   muted text has to get darker there, not lighter. */
+[data-theme="dark"] .admin-sidebar {
+  --color-gray-400: #52525b;
+  --color-gray-500: #52525b;
+}
+
+/* The brand red survives as a solid fill, but the same value used as *text*
+   ("View All" links, the today-delta on stat cards, the dashboard date chip,
+   danger buttons) dropped to ~2.5:1 on charcoal. Route just those to the
+   theme's text-lifted accent so the fills keep the original hue. */
+[data-theme="dark"] .admin-link,
+[data-theme="dark"] .admin-stat-change.today,
+[data-theme="dark"] .admin-date-display span,
+[data-theme="dark"] .admin-btn.danger,
+[data-theme="dark"] .admin-table td a:not(.admin-btn) {
+  color: var(--color-accent-text);
+}
+[data-theme="dark"] .admin-btn.danger {
+  border-color: var(--color-accent-text);
+}
+/* Hover keeps the solid brand fill + white label (white on #b8002f is ~5.6:1),
+   so only the resting state needs lifting. */
+
+/* The accent is the same red in both themes and keeps white text — but
+   --color-white flips to a near-black, which turned these into
+   dark-on-red instead of the intended white-on-red. */
+[data-theme="dark"] .badge,
+[data-theme="dark"] .wishlist-item-remove:hover,
+[data-theme="dark"] .cart-remove:hover,
+[data-theme="dark"] .price-save,
+[data-theme="dark"] .success-icon,
+[data-theme="dark"] .thankyou-icon,
+[data-theme="dark"] .order-icon,
+[data-theme="dark"] .admin-header-btn:hover,
+[data-theme="dark"] .admin-header-btn.active,
+[data-theme="dark"] .admin-nav a.active,
+[data-theme="dark"] .admin-nav-badge,
+[data-theme="dark"] .admin-btn.danger:hover,
+[data-theme="dark"] .subscriber-avatar span {
+  color: #ffffff !important;
+}
+
+/* Pale status chips glare against a dark page. Retint to translucent
+   fills of the same hue — each state stays clearly distinguishable. */
+[data-theme="dark"] .status-pending    { background: rgba(249, 168, 37, 0.18); color: #f6c667; }
+[data-theme="dark"] .status-confirmed  { background: rgba(59, 130, 246, 0.20); color: #93b8f7; }
+[data-theme="dark"] .status-processing { background: rgba(99, 102, 241, 0.22); color: #a9aaf5; }
+[data-theme="dark"] .status-shipped    { background: rgba(16, 185, 129, 0.20); color: #6ee7b7; }
+[data-theme="dark"] .status-delivered  { background: rgba(20, 184, 166, 0.20); color: #5eead4; }
+[data-theme="dark"] .status-cancelled  { background: rgba(239, 68, 68, 0.20);  color: #fca5a5; }
+
+/* Same treatment for the dashboard stat icons, which are the only other
+   place with hardcoded pastel fills. */
+[data-theme="dark"] .admin-stat-icon.orders      { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
+[data-theme="dark"] .admin-stat-icon.products    { background: rgba(59, 130, 246, 0.20); color: #93b8f7; }
+[data-theme="dark"] .admin-stat-icon.revenue     { background: rgba(249, 115, 22, 0.20); color: #fdba74; }
+[data-theme="dark"] .admin-stat-icon.subscribers { background: rgba(168, 85, 247, 0.20); color: #d8b4fe; }
+[data-theme="dark"] .admin-stat-icon.today       { background: rgba(239, 68, 68, 0.20);  color: #fca5a5; }
+[data-theme="dark"] .admin-stat-icon.this-week   { background: rgba(6, 182, 212, 0.20);  color: #67e8f9; }
+
+/* Stock chips carry the same hardcoded pastels as the status badges. */
+[data-theme="dark"] .stock-badge.in-stock     { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
+[data-theme="dark"] .stock-badge.low-stock    { background: rgba(249, 115, 22, 0.20); color: #fdba74; }
+[data-theme="dark"] .stock-badge.out-of-stock { background: rgba(239, 68, 68, 0.20);  color: #fca5a5; }
+
+/* The status chart and its legend are data viz: saturated fills that were
+   tuned for a white track go muddy against the dark one. */
+[data-theme="dark"] .status-bar-fill.status-delivered,
+[data-theme="dark"] .legend-dot.status-delivered  { background: #34d399; }
+[data-theme="dark"] .status-bar-fill.status-shipped,
+[data-theme="dark"] .legend-dot.status-shipped    { background: #60a5fa; }
+[data-theme="dark"] .status-bar-fill.status-processing,
+[data-theme="dark"] .legend-dot.status-processing { background: #fb923c; }
+[data-theme="dark"] .status-bar-fill.status-confirmed,
+[data-theme="dark"] .legend-dot.status-confirmed  { background: #c084fc; }
+[data-theme="dark"] .status-bar-fill.status-pending,
+[data-theme="dark"] .legend-dot.status-pending    { background: #fbbf24; }
+
+/* --color-gray-50 is the same value as the dark card surface, so row
+   hover produced no visible feedback at all. */
+[data-theme="dark"] .admin-table tr:hover td { background: rgba(255, 255, 255, 0.04); }
+
+/* The legend dots and stock badges carry meaning through colour, so make
+   sure the label text beside them keeps its contrast too. */
+[data-theme="dark"] .status-count,
+[data-theme="dark"] .admin-status-legend { color: var(--color-gray-600); }
+
+/* ══════════════════════════════════════════════════════════════
+   2. MISSING ADMIN CHROME
+   ══════════════════════════════════════════════════════════════ */
+
+/* No rule existed for the table wrapper at all, so a wide admin table
+   pushed the whole page sideways instead of scrolling inside its card. */
+.admin-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The sidebar divider referenced an undefined token (--color-gray-800),
+   so it fell back to currentColor and vanished against the panel.
+   --color-gray-700 already flips with the theme. */
+.admin-sidebar-footer { border-top-color: var(--color-gray-700); }
+
+/* The order screen's field labels shipped with no styling, so "Customer
+   Name" read exactly like the value underneath it. */
+.admin-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gray-400);
+  margin-bottom: var(--space-1);
+}
+
+/* The review-status filter on the product screen was an unstyled native
+   select sitting next to styled inputs. */
+.admin-select {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-gray-300);
+  border-radius: 2px;
+  background: var(--color-white);
+  color: var(--color-black);
+  font-size: 0.875rem;
+}
+.admin-select:focus { outline: none; border-color: var(--color-accent); }
+
+/* "jeans / baggy" separators were painted with --color-gray-300, which flips
+   to a near-black border tone in dark mode and disappeared against the card.
+   A dedicated class keeps light mode at the old shade and gives dark mode
+   the mid-gray text token instead. */
+.admin-sep {
+  color: var(--color-gray-300);
+}
+[data-theme="dark"] .admin-sep {
+  color: var(--color-gray-600);
+}
+
+.admin-tracking-container { width: 100%; }
+
+/* ══════════════════════════════════════════════════════════════
+   3. PHONE LAYOUT
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* ── Sidebar: one compact bar rather than a wrapped multi-row block ──
+     minmax(0, 1fr) + min-width:0 matter: a bare `1fr` takes its minimum
+     from content, and the no-wrap chip row would otherwise stretch the
+     grid past the viewport (928px of layout inside a 498px screen). */
+  .admin-layout { grid-template-columns: minmax(0, 1fr); }
+  .admin-sidebar {
+    display: block;
+    min-width: 0;
+    padding: var(--space-3) var(--space-4);
+  }
+  .admin-sidebar .admin-brand {
+    width: auto;
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-3);
+    font-size: 1.25rem;
+  }
+  /* Nav becomes a single swipeable chip row — keeps the header short and
+     every destination reachable without opening a drawer. */
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    min-width: 0;
+    gap: var(--space-2);
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* A slim scrollbar beats hiding it: it is the only affordance telling a
+     thumb there are more destinations off to the right. Note the absence of
+     `scrollbar-width` — setting it makes Chrome/Edge ignore the ::-webkit-*
+     rules below and fall back to the chunky native bar. */
+  .admin-nav::-webkit-scrollbar { height: 3px; }
+  .admin-nav::-webkit-scrollbar-thumb { background: var(--color-gray-600); border-radius: 2px; }
+  .admin-nav::-webkit-scrollbar-track { background: transparent; }
+  .admin-nav a {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 var(--space-3);
+    white-space: nowrap;
+    border: 1px solid var(--color-gray-200);
+  }
+  .admin-nav-badge { display: inline-block; margin-left: var(--space-2); }
+  .admin-sidebar-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+  }
+  .admin-sidebar-footer .admin-view-store { width: auto; }
+  .admin-sidebar-footer form { margin-top: 0 !important; }
+  .admin-logout-btn { width: auto; }
+
+  /* Admin screens stack a page-header on top of a padded section, which
+     cost ~96px of dead space above the fold on a phone. `:has()` trims it
+     only where the two are adjacent; browsers without it keep today's gap. */
+  .page-header:has(+ .admin-section) {
+    margin-bottom: 0;
+    padding-bottom: var(--space-6);
+  }
+  .admin-section { padding-top: var(--space-6); }
+
+  /* ── Content card ──
+     No `overflow-x: hidden` here on purpose: it would force `overflow-y`
+     to `auto` and turn the card into a nested scroll container, which
+     breaks sticky/drag behaviour. min-width:0 is the real overflow fix. */
+  .admin-content { padding: var(--space-4); min-height: 0; min-width: 0; }
+  .admin-content-header { margin-bottom: var(--space-5); }
+  .admin-bar { margin-bottom: var(--space-5); padding-bottom: var(--space-4); }
+
+  /* ── Toolbars stack and stretch ── */
+  .admin-export-btns { width: 100%; }
+  .admin-export-btns .admin-btn { flex: 1 1 auto; justify-content: center; }
+  .search-input { width: 100%; }
+  .admin-pagination { flex-direction: column; align-items: stretch; }
+  .admin-pagination .pagination-info { text-align: center; }
+  .pagination-controls { justify-content: center; flex-wrap: wrap; }
+
+  /* ── Stats: two per row, icon above copy ── */
+  .admin-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-stat-card { flex-direction: column; gap: var(--space-2); padding: var(--space-4); }
+  .admin-stat-value { font-size: 1.375rem; }
+  .admin-coupon-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* ── Order screen header (an inline flex row) stacks ── */
+  .admin-order-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: var(--space-3);
+  }
+  .admin-order-header > div:last-child { text-align: left !important; }
+}
+
+@media (max-width: 640px) {
+  /* ── Tables become stacked cards ──
+     Each cell prints its own column name from the data-label that
+     main.js copies out of <thead>, so no template has to maintain it. */
+  .admin-table-wrap { overflow: visible; }
+  .admin-table,
+  .admin-table tbody { display: block; width: 100%; min-width: 0; }
+  .admin-table thead { display: none; }
+  .admin-table tbody tr {
+    display: block;
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: 6px;
+  }
+  .admin-table tbody tr:hover td { background: transparent; }
+  .admin-table td {
+    display: block;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--color-gray-200);
+    font-size: 0.875rem;
+    text-align: left;
+  }
+  .admin-table td:first-child { padding-top: 0; }
+  .admin-table td:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+    padding-top: var(--space-3);
+  }
+  .admin-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 3px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    /* gray-500, not gray-400: these labels are new, and gray-400 only
+       reaches 2.56:1 on the light card. gray-500 clears 4.5:1 in both
+       themes (4.83 light / 4.91 dark). */
+    color: var(--color-gray-500);
+  }
+  /* Action cells: full-width tap targets side by side */
+  .admin-table td:last-child .admin-actions { flex-wrap: wrap; gap: var(--space-2); }
+  .admin-table td:last-child .admin-actions .admin-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 40px;
+  }
+  .admin-table td .admin-img { width: 44px; height: 44px; }
+
+  /* Inline-styled form grids in the admin views collapse to one column.
+     An attribute selector is the only way to reach an inline style, and
+     it is confined to this breakpoint. */
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns:2fr 1fr 1fr"],
+  [style*="grid-template-columns: 2fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Modals: reclaim the horizontal room the fields need ──
+     .admin-product-modal .form-row is a two-column grid declared after
+     the global .form-row stack rule, so it needs an explicit override. */
+  .admin-modal { padding: var(--space-3); }
+  .admin-modal .admin-modal-card { padding: var(--space-5) var(--space-4); }
+  .admin-product-modal .form-row { grid-template-columns: 1fr; }
+  .admin-product-modal .form-row-toggles { flex-wrap: wrap; gap: var(--space-3); }
+  .admin-modal-card .admin-modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .admin-modal-card .admin-modal-actions .admin-btn { justify-content: center; min-height: 44px; }
+
+  /* ── Comfortable tap targets ── */
+  .admin-btn { min-height: 40px; padding: 9px var(--space-4); }
+  .pagination-btn { width: 40px; height: 40px; }
+  .admin-coupon-code-badge { white-space: normal; }
+  /* Inventory rows pin their controls to 36px inline; lift them to a
+     thumb-friendly height and let the adjust row breathe. */
+  .admin-table .search-input { height: 40px !important; }
+  .inventory-adjust-form { flex-wrap: wrap; }
+  .inventory-adjust-form input { flex: 1 1 auto; min-width: 0; }
+  .inventory-adjust-form .admin-btn { flex: 1 1 auto; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-table tbody tr,
+  .admin-pagination { transition: none; }
+}
