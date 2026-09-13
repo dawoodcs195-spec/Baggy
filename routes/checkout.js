@@ -371,7 +371,7 @@ app.get('/api/my-orders', async (req, res) => {
  * returned untouched, so the webhook and the success redirect can race safely.
  */
 async function confirmStripeOrder(d, order, session) {
-  const { Product, Coupon, email, logger } = d;
+  const { Product, Coupon, email, logger, trackingStepsFor } = d;
   if (!order || order.paymentStatus === 'paid') return order;
 
   const qtyByProduct = new Map();
@@ -425,7 +425,7 @@ async function confirmStripeOrder(d, order, session) {
 
 // POST /api/stripe/webhook — mounted in server.js with express.raw().
 async function handleStripeWebhook(req, res, d) {
-  const { stripe, Order, logger } = d;
+  const { stripe, Order, logger, trackingStepsFor } = d;
   const raw = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : (typeof req.body === 'string' ? req.body : '');
   const event = stripe.verifyWebhook(raw, req.headers['stripe-signature']);
   if (!event) {

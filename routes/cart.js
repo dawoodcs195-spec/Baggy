@@ -102,14 +102,30 @@ app.post('/api/wishlist/toggle', async (req, res) => {
   }
 });
 
-app.post('/api/wishlist/remove', (req, res) => {
+app.post('/api/wishlist/remove', async (req, res) => {
   const { productId } = req.body;
+  const user = req.session?.user;
+  try {
+    // Signed-in: also remove from the persisted Wishlist collection — GET
+    // /api/wishlist re-syncs the session FROM it, so session-only removal
+    // would resurrect the item on the next page load.
+    if (user && user.email) {
+      await Wishlist.updateOne({ email: user.email }, { $pull: { items: { productId } } });
+    }
+  } catch {}
   const list = (req.session.wishlist || []).filter(i => i.productId !== productId);
   req.session.wishlist = list;
   res.json({ ok: true, wishlist: list });
 });
 
-app.post('/api/wishlist/clear', (req, res) => {
+app.post('/api/wishlist/clear', async (req, res) => {
+  const user = req.session?.user;
+  try {
+    // Same as /remove: clear the persisted copy too for signed-in users.
+    if (user && user.email) {
+      await Wishlist.updateOne({ email: user.email }, { $set: { items: [] } });
+    }
+  } catch {}
   req.session.wishlist = [];
   res.json({ ok: true, wishlist: [] });
 });
