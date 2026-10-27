@@ -36,7 +36,17 @@ jobs:
         run: npm run lint
 
       - name: Security audit
-        run: npm run audit
+        # The audit expects a .env file; create a throwaway CI-only one, then remove it
+        # so the test suite runs with its own isolated settings.
+        run: |
+          {
+            echo "SESSION_SECRET=$(openssl rand -hex 32)"
+            echo "MONGO_URI=mongodb://localhost:27017/baggy_ci"
+            echo "ADMIN_EMAILS=ci@example.com"
+            echo "ADMIN_PASSWORD=$(openssl rand -hex 16)"
+          } > .env
+          npm run audit
+          rm -f .env
 
       - name: Tests
         run: npm test
