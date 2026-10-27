@@ -1,118 +1,254 @@
-# BA GGY — Premium E-commerce
+<div align="center">
 
-A full-stack e-commerce platform for baggy jeans, oversized tees, accessories and uppers. Denim-heavy, editorial design, MongoDB-backed with a JSON fallback for offline dev.
+# BA GGY: Full-Stack Fashion E-Commerce
 
-## Quick Start
+**A production-style online store for baggy jeans, oversized tees and accessories, built with Node.js, Express, MongoDB and server-rendered EJS.**
 
-```bash
-npm install
-cp .env.example .env      # then edit .env with your values
-npm start                 # → http://localhost:3000
+[**Live demo →**](https://baggy-theta.vercel.app)
+
+[![CI](https://github.com/dawoodcs195-spec/Baggy/actions/workflows/ci.yml/badge.svg)](https://github.com/dawoodcs195-spec/Baggy/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?logo=vercel&logoColor=white)](https://baggy-theta.vercel.app)
+
+![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208-47A248?logo=mongodb&logoColor=white)
+![EJS](https://img.shields.io/badge/EJS-templates-B4CA65)
+![Stripe](https://img.shields.io/badge/Stripe-Checkout-635BFF?logo=stripe&logoColor=white)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-images-3448C5?logo=cloudinary&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+![Vitest](https://img.shields.io/badge/Tested%20with-Vitest-6E9F18?logo=vitest&logoColor=white)
+
+</div>
+
+---
+
+## Contents
+
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting started](#getting-started)
+- [Environment variables](#environment-variables)
+- [Scripts](#scripts)
+- [API overview](#api-overview)
+- [Deployment](#deployment)
+- [Roadmap](#roadmap)
+- [Author](#author)
+
+## Features
+
+**Storefront**
+- Home, shop, category pages (jeans, shirts), product detail and wishlist
+- Product search using a MongoDB text index, with a regex fallback
+- Reviews with star ratings, a verified-purchase flag and live rating aggregation
+- Order tracking page and customer order history
+
+**Cart and checkout**
+- Session-based cart with coupon validation
+- Atomic stock decrement when an order is placed
+- Payment options: Cash on Delivery, card (Stripe Checkout), JazzCash, EasyPaisa and bank transfer
+- Stripe webhook with signature verification; the success redirect also reconciles the order if the webhook is missed
+- Store prices are in PKR; card totals are converted to a Stripe-supported currency (`STRIPE_CURRENCY`, default USD)
+
+**Accounts**
+- Register, login, logout, saved addresses and password change
+- Password reset by emailed token
+- Passwords hashed with scrypt; password policy blocks common and weak passwords
+- Account lockout after 5 failed logins (15 minutes); sessions stored in MongoDB (`connect-mongo`)
+
+**Admin dashboard**
+- Orders: list, filter, detail view, status updates, CSV export and print view
+- Products: create/edit with Cloudinary image uploads, inventory and low-stock alerts
+- Coupons, newsletter subscribers (export and send), customers, contact messages and store settings
+- Per-order chat between customer and admin, with an email when the admin replies
+
+**Email** (Resend HTTP API)
+- Order confirmation, order-status updates, password reset, newsletter welcome and contact auto-reply
+- Without an API key, emails are logged to the console so local development needs no setup
+
+**Security**
+- Helmet with a Content Security Policy, CSRF tokens, per-route rate limits and input sanitisation
+- Fail-fast config check: the app refuses to start in production with missing or weak secrets
+
+**Frontend quality**
+- SEO: meta and Open Graph tags, JSON-LD, `sitemap.xml`, `robots.txt`, canonical URLs
+- Installable PWA with an offline service worker
+- Dark mode, mobile bottom navigation, sticky add-to-cart bar, skip link and reduced-motion support
+- gzip compression, ETags, database indexes and deferred scripts
+
+**Engineering**
+- 48 integration tests with Vitest and Supertest
+- GitHub Actions CI: lint, security audit, tests and a template render smoke test on every push and PR to `main`
+- Multi-stage Dockerfile with a health check, plus `docker-compose.yml` with MongoDB
+
+## Tech stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Runtime and server | Node.js 20, Express 4 |
+| Views | EJS (server-rendered), vanilla JS, CSS |
+| Database | MongoDB with Mongoose 8; sessions in `connect-mongo` |
+| Payments | Stripe Checkout and webhooks (called over Stripe's REST API, no SDK) |
+| Media | Cloudinary (uploads via Multer) |
+| Email | Resend HTTP API |
+| Security | Helmet, express-rate-limit, CSRF middleware, scrypt password hashing, password policy checks |
+| Logging | Pino |
+| Testing | Vitest, Supertest, autocannon (load tests) |
+| Tooling | ESLint, Prettier, optional Git pre-commit hook (`npm run hooks:install`) |
+| DevOps | Docker, Docker Compose, GitHub Actions, Vercel (serverless adapter in `api/index.js`) |
+
+## Architecture
+
+```text
+Browser ──► Express app (server.js)
+              ├─ middleware/   helmet · compression · rate limits · sessions · CSRF · auth
+              ├─ routes/       storefront · api · cart · checkout · auth · admin · order-chat
+              ├─ services/     productRepo · stripe · email (Resend) · cloudinary · logger
+              ├─ models/       Mongoose: Product, Order, User, Review, Coupon, Wishlist, Newsletter, Settings
+              └─ views/        EJS templates
+                     │
+                     ├──► MongoDB (data + sessions)
+                     ├──► Stripe (Checkout + webhook)
+                     ├──► Cloudinary (product images)
+                     └──► Resend (transactional email)
 ```
 
-MongoDB must be running locally (or set `MONGO_URI`). Without Mongo the app boots in JSON-file fallback mode so the storefront still works.
-
-## Environment Variables
-
-| Variable | Required | Notes |
-|----------|----------|-------|
-| `MONGO_URI` | prod only | Falls back to `mongodb://localhost:27017/baggy` in dev |
-| `SESSION_SECRET` | prod only | Min 32 chars; dev gets a random value |
-| `ADMIN_EMAILS` | prod only | Comma-separated admin email addresses |
-| `ADMIN_PASSWORD` | prod only | Min 8 chars; dev gets a random value |
-| `CLOUDINARY_*` | no | Image uploads; falls back to local `/public/images` |
-| `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY` | no | Enables card payments; without them only COD/JazzCash/EasyPaisa show |
-| `RESEND_API_KEY` | no | Enables transactional email; without it emails are logged to the console |
-| `EMAIL_FROM` | no | Verified sender for Resend (default: `onboarding@resend.dev`) |
-
-## Scripts
-
-| Command | What it does |
-|---------|--------------|
-| `npm start` | Boot the server |
-| `npm test` | Run the Vitest suite (48 integration tests) |
-| `npm run check` | Phase 1 + 2 unit checks (30 assertions) |
-| `npm run audit` | Security audit (30 checks, incl. live header/cookie probe) |
-| `npm run smoke` | Render every template to catch crashes (35 templates) |
-| `npm run load` | Load-test home/shop/search (autocannon, 50 conn) |
-| `npm run load:api` | Load-test search API + checkout page |
-| `npm run lint` | ESLint |
-| `npm run format` | Prettier |
-| `npm run seed` | Seed products from `seeds/productSeed.js` |
-| `npm run seed:coupons` | Seed test coupons |
-
-## Project Structure
-
-```
-abc/
-├── config/          # env validation, DB connection
-├── middleware/      # csrf, auth, errors, rate-limiters
-├── models/          # Mongoose models (Product, Order, User, Review, …)
-├── routes/          # storefront, api, cart, checkout, auth, admin, order-chat
-├── services/        # productRepo, logger, email, stripe, cloudinary
-├── utils/           # sanitize, helpers, password
-├── scripts/         # audit, smoke, check, load-test, seed
-├── tests/           # Vitest + Supertest integration tests
-├── views/           # EJS templates (40 pages)
-├── public/          # css, js, images, manifest, service worker
-├── server.js        # app bootstrap (env → DB → sessions → routes)
-├── seeds/           # product + coupon seed data
-├── Dockerfile       # production image
+```text
+Baggy/
+├── api/index.js         # Vercel serverless entry (boots the Express app once per warm instance)
+├── config/              # env validation, DB connection
+├── middleware/          # auth, csrf, errors, rate limiters
+├── models/              # Mongoose models
+├── routes/              # route modules
+├── services/            # Stripe, email, Cloudinary, product repository, logger
+├── utils/               # sanitise, helpers, password hashing
+├── views/               # EJS pages and admin screens
+├── public/              # CSS, JS, images, manifest, service worker
+├── seeds/               # product and coupon seeds, Atlas seeding, image migration
+├── scripts/             # security audit, render smoke test, checks, load tests
+├── tests/               # Vitest + Supertest integration tests
+├── server.js            # app bootstrap
+├── Dockerfile
 ├── docker-compose.yml
 └── .github/workflows/ci.yml
 ```
 
-## Features
+## Getting started
 
-- **Storefront**: home, shop, category pages, product detail, search (MongoDB text index + regex fallback), wishlist
-- **Cart & Checkout**: session cart, coupon validation, atomic stock decrement, COD / card / JazzCash / EasyPaisa / bank transfer
-- **Payments**: Stripe Checkout (hosted) when keys are present; manual-confirm flows otherwise
-- **Auth**: register, login, logout, password reset (token emailed), account lockout after 5 failed attempts, session store in MongoDB
-- **Admin**: dashboard, order management, product CRUD (Cloudinary uploads), coupon management, customer contacts, newsletter, user management, order chat
-- **Reviews**: star ratings, verified-purchase flag, live rating aggregation
-- **Order Chat**: per-order messaging between customer and admin, email notification on admin reply
-- **Email**: order confirmation, password reset, order-status updates, newsletter welcome, contact auto-reply (Resend API; degrades to console logging without a key)
-- **SEO**: meta/OG tags, JSON-LD Organization, sitemap.xml, robots.txt, canonical URLs
-- **PWA**: installable manifest + offline service worker (network-first pages, stale-while-revalidate assets)
-- **Dark mode**: toggle in header, persisted to localStorage, respects system preference
-- **Mobile**: bottom navigation bar ≤768px, sticky add-to-cart bar on product page
-- **Accessibility**: skip link, focus-visible rings, aria-live regions, reduced-motion support
-- **Security**: Helmet CSP, CSRF tokens, per-route rate limits, account lockout, input sanitization, fail-fast prod config
-- **Performance**: gzip compression, ETags, DB indexes, deferred JS, font-display swap, hero preload
+**Prerequisites:** Node.js 20+, npm, and MongoDB (local, Docker or Atlas).
 
-## CI
+```bash
+git clone https://github.com/dawoodcs195-spec/Baggy.git
+cd Baggy
+npm install
+cp .env.example .env     # fill in your values
+npm run seed             # optional: seed products
+npm run seed:coupons     # optional: seed test coupons
+npm run dev              # http://localhost:3000
+```
 
-GitHub Actions runs lint → test → audit on every push to `main`.
+Without `MONGO_URI` the app uses `mongodb://localhost:27017/baggy_jeans_shop` in development. Stripe, Cloudinary and Resend are optional: the store runs without them and falls back to non-card payments, local images and console-logged email.
 
-## Deploy on Vercel
+**Run the tests**
 
-1. **Create a MongoDB Atlas cluster** (free M0 tier) and allow access from anywhere:
-   - Atlas ? *Network Access* ? *Add IP Address* ? `0.0.0.0/0`
-   - *Database Access* ? create a user with read/write
-2. **Seed the database once** from your machine:
-   ```bash
-   npm run seed          # products (uses MONGO_URI from .env)
-   npm run seed:coupons  # coupons
-   ```
-3. **Push this repo to GitHub** and import it in Vercel (or `vercel --prod`).
-4. **Add environment variables** in Vercel ? Project ? Settings ? Environment Variables:
+```bash
+npm test            # Vitest integration suite (needs MongoDB running)
+npm run lint
+npm run audit       # security checks
+npm run smoke       # render every template
+```
 
-   | Variable | Value |
-   |----------|-------|
-   | `MONGO_URI` | your `mongodb+srv://...` Atlas string |
-   | `SESSION_SECRET` | random 32+ char string |
-   | `ADMIN_EMAILS` | comma-separated admin emails |
-   | `ADMIN_PASSWORD` | strong password (10+) |
-   | `APP_URL` | `https://your-app.vercel.app` |
-   | `STRIPE_SECRET_KEY` + `STRIPE_PUBLISHABLE_KEY` | optional — card payments |
-   | `STRIPE_WEBHOOK_SECRET` | optional — payment confirmation webhook |
-   | `RESEND_API_KEY` | optional — transactional email |
-   | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | optional — image uploads |
+**Run with Docker**
 
-5. **Deploy.** The `api/index.js` serverless adapter boots the Express app once per warm instance and routes all traffic through it. Static assets under `/public` are served by Vercel.
+```bash
+cp .env.example .env
+docker compose up --build    # app on :3000, MongoDB on :27017
+```
 
-> **Note:** `NODE_ENV=production` and `VERCEL=1` are set by Vercel. The app skips `app.listen()` and the template smoke test in that mode.
+## Environment variables
+
+Copy `.env.example` to `.env`. Names only are listed here; never commit real values.
+
+| Variable | Required | Purpose |
+| :--- | :---: | :--- |
+| `PORT` | No | HTTP port (default 3000) |
+| `NODE_ENV` | No | `development` or `production` |
+| `MONGO_URI` | Production | MongoDB connection string |
+| `SESSION_SECRET` | Production | Session signing secret, 32+ characters |
+| `ADMIN_EMAILS` | Production | Comma-separated admin emails |
+| `ADMIN_PASSWORD` | Production | Admin bootstrap password, 10+ characters |
+| `APP_URL` | No | Public base URL for email links and Stripe redirects |
+| `STRIPE_SECRET_KEY` | No | Enables card payments |
+| `STRIPE_PUBLISHABLE_KEY` | No | Enables card payments |
+| `STRIPE_WEBHOOK_SECRET` | No | Verifies Stripe webhook signatures |
+| `STRIPE_CURRENCY` | No | Card currency (default `usd`) |
+| `PKR_PER_UNIT` | No | PKR to card-currency rate (default 280) |
+| `CLOUDINARY_CLOUD_NAME` | No | Cloudinary image uploads |
+| `CLOUDINARY_API_KEY` | No | Cloudinary image uploads |
+| `CLOUDINARY_API_SECRET` | No | Cloudinary image uploads |
+| `RESEND_API_KEY` | No | Sends transactional email |
+| `EMAIL_FROM` | No | Verified sender address |
+| `STORE_EMAIL` | No | Store inbox for notifications |
+| `EMAIL_REPLY_TO` | No | Reply-to address |
+| `LOG_LEVEL` | No | Pino log level |
+
+## Scripts
+
+| Command | What it does |
+| :--- | :--- |
+| `npm start` / `npm run dev` | Start the server (dev uses nodemon) |
+| `npm test` | Vitest integration tests |
+| `npm run test:coverage` | Tests with coverage |
+| `npm run lint` / `npm run format` | ESLint / Prettier |
+| `npm run audit` | Security audit script |
+| `npm run smoke` | Render every EJS template |
+| `npm run check` | Phase 1 and 2 checks |
+| `npm run load` / `npm run load:api` | autocannon load tests |
+| `npm run seed` / `npm run seed:coupons` / `npm run seed:atlas` | Seed data |
+
+## API overview
+
+JSON endpoints used by the storefront and admin UI (HTML pages are served by the same app).
+
+| Area | Endpoints |
+| :--- | :--- |
+| Auth | `GET /api/auth/session` · `POST /api/auth/register` · `POST /api/auth/login` · `POST /api/auth/logout` · `POST /api/auth/forgot-password` · `POST /api/auth/reset-password` |
+| User | `POST /api/user/change-password` · `GET/POST /api/user/addresses` · `GET /api/my-orders` |
+| Products | `GET /api/product/:id` · `POST /api/reviews` |
+| Cart | `GET /api/cart` · `POST /api/cart/add` · `/update` · `/remove` · `/clear` |
+| Wishlist | `GET /api/wishlist` · `POST /api/wishlist/toggle` · `/remove` · `/clear` |
+| Checkout | `POST /api/coupon/validate` · `POST /api/checkout` · `POST /api/stripe/checkout` · `POST /api/stripe/webhook` · `GET /checkout/success` |
+| Orders | `GET /api/order/:id` · `POST /api/track` · `POST /api/order-message` · `GET /api/order-message/:orderId` |
+| Marketing | `POST /api/contact` · `POST /api/newsletter/subscribe` |
+| Admin | `/api/admin/products` · `/coupons` · `/settings` · `/store-info` · `/reviews` · `/stock/alerts` · `/newsletter/*` · `/contact/:id` |
+
+## Deployment
+
+The live demo runs on **Vercel** with **MongoDB Atlas**.
+
+1. Create an Atlas cluster and a database user, and allow access from Vercel.
+2. Seed once from your machine: `npm run seed && npm run seed:coupons` (with `MONGO_URI` pointing at Atlas).
+3. Import the repo in Vercel. `vercel.json` routes all requests to `api/index.js`, which boots the Express app; `/public` is served as static files.
+4. Add the production environment variables above (`MONGO_URI`, `SESSION_SECRET`, `ADMIN_EMAILS`, `ADMIN_PASSWORD`, `APP_URL`, plus Stripe, Cloudinary and Resend keys if used).
+5. Point a Stripe webhook at `/api/stripe/webhook` and set `STRIPE_WEBHOOK_SECRET`.
+
+The Dockerfile also lets you run it on any container host (Render, Railway, Fly.io, a VPS).
+
+## Roadmap
+
+- [ ] Live JazzCash / EasyPaisa gateway integration (currently manual confirmation)
+- [ ] Product variants with per-size stock
+- [ ] End-to-end browser tests (Playwright)
+- [ ] Admin sales analytics charts
+
+## Author
+
+**Muhammad Dawood**, Full-Stack Developer
+
+- Email: [dawood.cs195@gmail.com](mailto:dawood.cs195@gmail.com)
+- GitHub: [@dawoodcs195-spec](https://github.com/dawoodcs195-spec)
 
 ## License
 
-ISC
+Released under the [MIT License](LICENSE).
